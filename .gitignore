@@ -46,7 +46,6 @@ next-env.d.ts
 /.agents/
 /.claude/
 /.grok/
-/context/
 
 /AGENTS.md
 /CLAUDE.md

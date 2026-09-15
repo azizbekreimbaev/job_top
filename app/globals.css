@@ -2,7 +2,7 @@
 
 @theme {
   /* Font */
-  --font-sans: "Inter", sans-serif;
+  --font-sans: var(--font-inter), sans-serif;
 
   /* Page and surface backgrounds */
   --color-background: #f6f7fb;
@@ -75,4 +75,43 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+  }
+
+  a {
+    text-decoration: none;
+  }
+}
+
+@utility marketing-glow {
+  background:
+    radial-gradient(circle at 24% 34%, color-mix(in srgb, var(--color-accent-light) 74%, transparent) 0, transparent 34%),
+    radial-gradient(circle at 76% 28%, color-mix(in srgb, var(--color-info-light) 72%, transparent) 0, transparent 38%),
+    radial-gradient(circle at 56% 82%, color-mix(in srgb, var(--color-accent-muted) 88%, transparent) 0, transparent 38%),
+    var(--color-surface);
+}
+
+@utility marketing-grid {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--color-border) 50%, transparent) 0,
+    color-mix(in srgb, var(--color-border) 50%, transparent) 1px,
+    transparent 1px,
+    transparent 7px
+  );
 }
