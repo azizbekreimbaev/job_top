@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+
+# skills and contexts
+/.agents/
+/.claude/
+/.grok/
+/context/
+
+/AGENTS.md
+/CLAUDE.md
