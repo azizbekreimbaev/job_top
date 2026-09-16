@@ -112,3 +112,60 @@ Last updated: 2026-09-15
 | Accent usage     | Supplied JobPilot logo and link hover color                           |
 
 **Pattern notes:** The footer mirrors the centered 1280px marketing canvas and switches from a centered vertical arrangement to a horizontal row at the small breakpoint.
+
+### Authentication Card
+
+Files: app/(auth)/login/page.tsx, components/auth/OAuthButtons.tsx
+Last updated: 2026-09-16
+
+| Property         | Class                                                                      |
+| ---------------- | -------------------------------------------------------------------------- |
+| Background       | Page `marketing-glow`, card and buttons `bg-surface`                       |
+| Border           | `border border-border`                                                     |
+| Border radius    | Card `none`, buttons `rounded-md`                                          |
+| Text — primary   | `text-text-slate font-semibold tracking-[-0.04em]`                         |
+| Text — secondary | `text-text-secondary text-sm`, legal text `text-text-muted text-xs`        |
+| Spacing          | Card `px-6 py-8 sm:px-10 sm:py-10`, buttons `px-4 py-3`, stack `space-y-3` |
+| Hover state      | `hover:bg-surface-secondary`                                               |
+| Shadow           | `none`                                                                     |
+| Accent usage     | Eyebrow `text-accent`, focus `focus-visible:outline-accent`                |
+
+**Pattern notes:** Authentication uses a centered, square-edged editorial card over the existing marketing glow. Provider actions are full-width bordered buttons with compact monochrome provider marks and consistent accessible focus outlines.
+
+### Authenticated App Header
+
+File: app/(protected)/layout.tsx
+Last updated: 2026-09-16
+
+| Property         | Class                                                                 |
+| ---------------- | --------------------------------------------------------------------- |
+| Background       | `bg-surface` on `bg-background` application pages                    |
+| Border           | `border-b border-border`                                              |
+| Border radius    | Sign-out button `rounded-md`                                          |
+| Text — primary   | `text-text-dark text-sm font-medium`                                  |
+| Text — secondary | `none`                                                                |
+| Spacing          | Header `h-20 px-5 sm:px-8`, navigation `gap-8`, button `px-4 py-2.5` |
+| Hover state      | Links `hover:text-accent`, button `hover:bg-surface-secondary`        |
+| Shadow           | `none`                                                                |
+| Accent usage     | `focus-visible:outline-accent`                                        |
+
+**Pattern notes:** The authenticated shell mirrors the marketing navbar dimensions and logo treatment while replacing the marketing CTA with a quiet bordered sign-out action. Product navigation remains hidden below the medium breakpoint until a mobile navigation pattern is introduced.
+
+### Inline Error Alert
+
+File: app/(protected)/dashboard/page.tsx
+Last updated: 2026-09-16
+
+| Property         | Class                                      |
+| ---------------- | ------------------------------------------ |
+| Background       | `bg-surface`                               |
+| Border           | `border border-error`                      |
+| Border radius    | `none`                                     |
+| Text — primary   | `text-text-dark text-sm`                   |
+| Text — secondary | `none`                                     |
+| Spacing          | `mt-6 px-4 py-3`                           |
+| Hover state      | `none`                                     |
+| Shadow           | `none`                                     |
+| Accent usage     | Error state uses the `border-error` token  |
+
+**Pattern notes:** Recoverable action failures stay in context and use a concise `role="alert"` message. The alert uses the project surface and error-border tokens without exposing raw backend errors.

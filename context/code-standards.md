@@ -305,7 +305,7 @@ Never install a new package without a clear reason. Before installing anything c
 
 Approved dependencies for this project:
 
-- `@insforge/ssr` — InsForge client
+- `@insforge/sdk` — InsForge client, SSR auth helpers, and middleware session refresh
 - `@browserbasehq/sdk` — Browserbase sessions
 - `@browserbasehq/stagehand` — AI browser control
 - `openai` — GPT-4o API
