@@ -149,7 +149,7 @@ Last updated: 2026-09-16
 | Shadow           | `none`                                                                |
 | Accent usage     | `focus-visible:outline-accent`                                        |
 
-**Pattern notes:** The authenticated shell mirrors the marketing navbar dimensions and logo treatment while replacing the marketing CTA with a quiet bordered sign-out action. Product navigation remains hidden below the medium breakpoint until a mobile navigation pattern is introduced.
+**Pattern notes:** The authenticated shell mirrors the marketing navbar dimensions and logo treatment while replacing the marketing CTA with a quiet bordered sign-out action. The logo always links to the public homepage (`/`). Product navigation remains hidden below the medium breakpoint until a mobile navigation pattern is introduced.
 
 ### Inline Error Alert
 
@@ -169,3 +169,16 @@ Last updated: 2026-09-16
 | Accent usage     | Error state uses the `border-error` token  |
 
 **Pattern notes:** Recoverable action failures stay in context and use a concise `role="alert"` message. The alert uses the project surface and error-border tokens without exposing raw backend errors.
+
+### Analytics Identity Bridge
+
+File: components/analytics/PostHogIdentity.tsx
+Last updated: 2026-09-16
+
+| Property         | Class  |
+| ---------------- | ------ |
+| Visual output    | `none` |
+| Layout impact    | `none` |
+| Interaction      | `none` |
+
+**Pattern notes:** The authenticated server layout supplies the stable InsForge user identity to this non-visual client boundary. It identifies the active user after hydration and resets PostHog identity when the protected shell unmounts after sign-out.

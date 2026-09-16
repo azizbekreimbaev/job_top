@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 1 — Foundation
-**Last completed:** 02 Auth
-**Next:** 03 PostHog Initialization
+**Last completed:** 03 PostHog Initialization
+**Next:** 04 Database Schema
 
 ---
 
@@ -18,7 +18,7 @@ Update this file after every completed feature. Any AI agent reading this should
 
 - [x] 01 Homepage
 - [x] 02 Auth
-- [ ] 03 PostHog Initialization
+- [x] 03 PostHog Initialization
 - [ ] 04 Database Schema
 
 ### Phase 2 — Profile Page
@@ -57,6 +57,10 @@ Update this file after every completed feature. Any AI agent reading this should
 - Auth uses `@insforge/sdk` SSR helpers so OAuth starts and completes on the server, keeping the PKCE verifier and refresh token in httpOnly cookies.
 - Next.js 16 `proxy.ts` refreshes InsForge sessions and redirects unauthenticated application routes before render; the protected layout performs a second authoritative user check.
 - `/dashboard`, `/profile`, and `/find-jobs` are intentionally minimal heading-only placeholders until their planned UI phases.
+- PostHog initializes before hydration through Next.js 16 client instrumentation, identifies authenticated users by their stable InsForge user ID, and resets browser identity when the protected application shell unmounts after sign-out.
+- PostHog configuration uses the current `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` name while retaining `NEXT_PUBLIC_POSTHOG_KEY` as a temporary compatibility fallback.
+- Only the four approved business events in `code-standards.md` may be captured; authentication and marketing interactions do not introduce additional custom event names.
+- JobPilot logo links consistently return users to the public homepage, including from the authenticated application header.
 
 ---
 

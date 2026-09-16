@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { signOut } from "@/actions/auth";
+import { PostHogIdentity } from "@/components/analytics/PostHogIdentity";
 import { createInsforgeServer } from "@/lib/insforge-server";
 
 const navItems = [
@@ -27,9 +28,14 @@ export default async function ProtectedLayout({ children }: LayoutProps<"/">) {
 
   return (
     <div className="min-h-screen bg-background">
+      <PostHogIdentity
+        userId={data.user.id}
+        email={data.user.email}
+        name={data.user.profile?.name}
+      />
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex h-20 max-w-[1280px] items-center justify-between gap-6 px-5 sm:px-8">
-          <Link href="/dashboard" aria-label="JobPilot dashboard" className="shrink-0">
+          <Link href="/" aria-label="JobPilot home" className="shrink-0">
             <Image src="/logo.png" alt="JobPilot" width={124} height={42} />
           </Link>
 

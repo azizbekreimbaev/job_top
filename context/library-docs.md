@@ -543,14 +543,24 @@ const result = JSON.parse(response.choices[0].message.content!);
 // lib/posthog-client.ts
 import posthog from "posthog-js";
 
-export function initPostHog() {
-  if (typeof window !== "undefined") {
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST!,
-      capture_pageview: false, // manual pageview tracking
-    });
+export function initPostHog(): void {
+  const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
+  const host = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+
+  if (!projectToken || !host) {
+    return;
   }
+
+  posthog.init(projectToken, {
+    api_host: host,
+    defaults: "2026-05-30",
+  });
 }
+
+// instrumentation-client.ts
+import { initPostHog } from "@/lib/posthog-client";
+
+initPostHog();
 
 // Capture event client-side
 posthog.capture("job_found", {
@@ -567,7 +577,7 @@ posthog.capture("job_found", {
 import { PostHog } from "posthog-node";
 
 export const createPostHogServer = () =>
-  new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+  new PostHog(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
     host: process.env.NEXT_PUBLIC_POSTHOG_HOST!,
     flushAt: 1, // send immediately
     flushInterval: 0, // no batching — Next.js functions are short-lived
@@ -589,6 +599,7 @@ await posthog.shutdown(); // required — ensures event is sent
 - `flushAt: 1` and `flushInterval: 0` always set on server client
 - Event names must match exactly the list in `code-standards.md`
 - Always include `userId` as a property on every server-side event
+- Initialize the browser SDK from `instrumentation-client.ts` so it runs before hydration
 - Call `posthog.identify(userId)` after login on client side
 - Call `posthog.reset()` on logout on client side
 

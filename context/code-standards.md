@@ -250,7 +250,7 @@ All environment variables defined in `.env.local` for development. Never hardcod
 | `OPENAI_API_KEY`                | agent/ functions       |
 | `ADZUNA_APP_ID`                 | lib/adzuna.ts          |
 | `ADZUNA_APP_KEY`                | lib/adzuna.ts          |
-| `NEXT_PUBLIC_POSTHOG_KEY`       | lib/posthog-client.ts  |
+| `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | lib/posthog-client.ts  |
 | `NEXT_PUBLIC_POSTHOG_HOST`      | lib/posthog-client.ts  |
 
 `NEXT_PUBLIC_` prefix means the variable is exposed to the browser. Never add `NEXT_PUBLIC_` to secret keys.
