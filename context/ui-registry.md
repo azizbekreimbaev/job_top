@@ -134,22 +134,22 @@ Last updated: 2026-09-16
 
 ### Authenticated App Header
 
-File: app/(protected)/layout.tsx
-Last updated: 2026-09-16
+Files: app/(protected)/layout.tsx, components/layout/ApplicationNavigation.tsx
+Last updated: 2026-09-17
 
 | Property         | Class                                                                 |
 | ---------------- | --------------------------------------------------------------------- |
 | Background       | `bg-surface` on `bg-background` application pages                    |
 | Border           | `border-b border-border`                                              |
 | Border radius    | Sign-out button `rounded-md`                                          |
-| Text — primary   | `text-text-dark text-sm font-medium`                                  |
-| Text — secondary | `none`                                                                |
-| Spacing          | Header `h-20 px-5 sm:px-8`, navigation `gap-8`, button `px-4 py-2.5` |
-| Hover state      | Links `hover:text-accent`, button `hover:bg-surface-secondary`        |
+| Text — primary   | Inactive `text-text-dark text-sm font-medium`                         |
+| Text — secondary | Active `text-accent text-sm font-medium`                              |
+| Spacing          | Header `h-16 px-5 sm:px-8`, navigation `gap-8`                       |
+| Hover state      | Links `hover:text-accent`, sign-out `hover:bg-surface-secondary`      |
 | Shadow           | `none`                                                                |
-| Accent usage     | `focus-visible:outline-accent`                                        |
+| Accent usage     | Active `border-b-2 border-accent text-accent`, focus `focus-visible:outline-accent` |
 
-**Pattern notes:** The authenticated shell mirrors the marketing navbar dimensions and logo treatment while replacing the marketing CTA with a quiet bordered sign-out action. The logo always links to the public homepage (`/`). Product navigation remains hidden below the medium breakpoint until a mobile navigation pattern is introduced.
+**Pattern notes:** The authenticated shell uses the compact 64px product header from the supplied application reference. `ApplicationNavigation` isolates `usePathname()` to a small client boundary so the server layout keeps ownership of session verification. Active routes use a purple bottom border and matching icon/text color. The logo always links to the public homepage (`/`); the server-action-backed Sign Out button remains visible at every breakpoint while product navigation is hidden below medium.
 
 ### Inline Error Alert
 
@@ -188,3 +188,60 @@ Last updated: 2026-09-16
 Last updated: 2026-09-17
 
 No visual components were added. Feature 04 establishes the data and ownership model used by future profile, job, activity, and resume UI. Existing application-shell patterns remain unchanged.
+
+### Profile Attention Banner
+
+Files: components/profile/ProfileAttention.tsx, components/profile/CompletionIndicator.tsx
+Last updated: 2026-09-17
+
+| Property         | Class                                                   |
+| ---------------- | ------------------------------------------------------- |
+| Background       | `bg-surface`                                            |
+| Border           | `border border-error/20`                                |
+| Border radius    | `rounded-2xl`, missing-field badges `rounded-sm`        |
+| Text — primary   | `text-text-primary text-lg font-semibold`               |
+| Text — secondary | `text-text-secondary text-sm leading-5`                 |
+| Spacing          | Container `p-6`, badge row `mt-5 gap-2`                 |
+| Hover state      | `none`                                                  |
+| Shadow           | `shadow-sm`                                             |
+| Accent usage     | Error state `stroke-error`, `bg-error/10`, `text-error` |
+
+**Pattern notes:** Incomplete-profile messaging uses a restrained error border and compact uppercase missing-field badges on a white card. The completion ring is an SVG progress treatment using tokenized strokes rather than component-level color values.
+
+### Resume Upload Card
+
+File: components/profile/ResumeUpload.tsx
+Last updated: 2026-09-17
+
+| Property         | Class                                                                       |
+| ---------------- | --------------------------------------------------------------------------- |
+| Background       | Card `bg-surface`, drop zone `bg-surface-secondary`                        |
+| Border           | Card `border border-border`, drop zone `border-dashed border-border-muted` |
+| Border radius    | Card `rounded-2xl`, drop zone `rounded-xl`, actions `rounded-md`           |
+| Text — primary   | `text-text-primary`, title `text-lg font-semibold`                         |
+| Text — secondary | `text-text-secondary text-sm`                                              |
+| Spacing          | Card `p-6`, drop zone `px-6 py-10`, footer `pt-5`                          |
+| Hover state      | Secondary `hover:bg-surface-secondary`, primary `hover:bg-accent-dark`     |
+| Shadow           | Card and upload action `shadow-sm`                                         |
+| Accent usage     | Upload icon `stroke-accent`, primary `bg-accent text-accent-foreground`    |
+
+**Pattern notes:** Resume upload uses a large centered dashed drop zone followed by a border-separated action footer. Primary generation actions remain purple; file selection remains a quiet white secondary action.
+
+### Profile Information Form
+
+File: components/profile/ProfileForm.tsx
+Last updated: 2026-09-17
+
+| Property         | Class                                                                               |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| Background       | Card and inputs `bg-surface`, filled/disabled inputs `bg-surface-secondary`        |
+| Border           | Card, fields, and section dividers `border-border`                                 |
+| Border radius    | Card `rounded-2xl`, controls `rounded-md`, role panel `rounded-xl`                 |
+| Text — primary   | Section titles `text-text-primary font-semibold`, controls `text-text-primary text-sm` |
+| Text — secondary | Labels `text-text-secondary text-xs font-medium uppercase tracking-wide`           |
+| Spacing          | Card `p-6`, form `space-y-10`, sections `pt-10`, grid `gap-x-5 gap-y-5`            |
+| Hover state      | Primary `hover:bg-accent-dark`, add controls `hover:text-text-primary`              |
+| Shadow           | Card and controls `shadow-sm`                                                       |
+| Accent usage     | Controls `focus:border-accent focus:ring-1 focus:ring-accent`, primary `bg-accent`  |
+
+**Pattern notes:** Long application forms use a responsive one-to-two-column grid, 44px controls, compact uppercase labels, and border-separated sections. Filled mock values use the secondary surface while required empty fields remain white, matching the supplied profile reference.

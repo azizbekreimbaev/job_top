@@ -6,9 +6,9 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ## Current Status
 
-**Phase:** Phase 1 — Foundation
-**Last completed:** 04 Database Schema
-**Next:** 05 Profile Page — Full UI
+**Phase:** Phase 2 — Profile Page
+**Last completed:** 05 Profile Page — Full UI
+**Next:** 06 Profile Save Logic
 
 ---
 
@@ -23,7 +23,7 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ### Phase 2 — Profile Page
 
-- [ ] 05 Profile Page — Full UI
+- [x] 05 Profile Page — Full UI
 - [ ] 06 Profile Save Logic
 - [ ] 07 AI Profile Extraction from Resume
 - [ ] 08 Resume PDF Generation from Profile
@@ -64,6 +64,10 @@ Update this file after every completed feature. Any AI agent reading this should
 - Database ownership is enforced with RLS through `auth.uid()` on profiles, runs, jobs, logs, and private resume objects; composite foreign keys also prevent cross-user run/job relationships.
 - Profiles are created on first profile save. Resume storage keeps one private `{user_id}/resume.pdf` object and persists its key, while signed URLs are generated only when needed.
 - Resume-tailoring fields were omitted because resume tailoring is outside the current product scope.
+- The profile page follows `context/designs/profile.png` on a 1024px content canvas with responsive field stacking, mock-only form content, and no persistence or generation logic until Features 06–08.
+- The authenticated application header uses a 64px product layout and a small `usePathname()` client boundary for icon-backed active navigation while session verification remains server-side.
+- The authenticated header keeps a visible Sign Out button at every breakpoint; it submits the existing server action, ends the InsForge session, and redirects to the homepage.
+- Cover letter tone remains in the data model but is intentionally omitted from Feature 05 because it is not present in the approved profile reference.
 
 ---
 
