@@ -182,3 +182,9 @@ Last updated: 2026-09-16
 | Interaction      | `none` |
 
 **Pattern notes:** The authenticated server layout supplies the stable InsForge user identity to this non-visual client boundary. It identifies the active user after hydration and resets PostHog identity when the protected shell unmounts after sign-out.
+
+### Feature 04 — Database Foundation
+
+Last updated: 2026-09-17
+
+No visual components were added. Feature 04 establishes the data and ownership model used by future profile, job, activity, and resume UI. Existing application-shell patterns remain unchanged.

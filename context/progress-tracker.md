@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 1 — Foundation
-**Last completed:** 03 PostHog Initialization
-**Next:** 04 Database Schema
+**Last completed:** 04 Database Schema
+**Next:** 05 Profile Page — Full UI
 
 ---
 
@@ -19,7 +19,7 @@ Update this file after every completed feature. Any AI agent reading this should
 - [x] 01 Homepage
 - [x] 02 Auth
 - [x] 03 PostHog Initialization
-- [ ] 04 Database Schema
+- [x] 04 Database Schema
 
 ### Phase 2 — Profile Page
 
@@ -61,6 +61,9 @@ Update this file after every completed feature. Any AI agent reading this should
 - PostHog configuration uses the current `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` name while retaining `NEXT_PUBLIC_POSTHOG_KEY` as a temporary compatibility fallback.
 - Only the four approved business events in `code-standards.md` may be captured; authentication and marketing interactions do not introduce additional custom event names.
 - JobPilot logo links consistently return users to the public homepage, including from the authenticated application header.
+- Database ownership is enforced with RLS through `auth.uid()` on profiles, runs, jobs, logs, and private resume objects; composite foreign keys also prevent cross-user run/job relationships.
+- Profiles are created on first profile save. Resume storage keeps one private `{user_id}/resume.pdf` object and persists its key, while signed URLs are generated only when needed.
+- Resume-tailoring fields were omitted because resume tailoring is outside the current product scope.
 
 ---
 

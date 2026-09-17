@@ -70,7 +70,6 @@ All InsForge tables and storage bucket created before any data is written.
 - Create `profiles` table with all columns from architecture.md
 - Create `agent_runs` table
 - Create `jobs` table with all columns including:
-  - tailored fields
   - company_research jsonb column
   - source values: 'search' | 'url'
 - Create `agent_logs` table
@@ -106,8 +105,8 @@ Wire profile form to InsForge DB.
 **Logic:**
 
 - Server Action in actions/profile.ts saves all form fields to profiles table
-- Resume PDF uploaded to InsForge Storage at resumes/{user_id}/resume.pdf with upsert: true
-- resume_pdf_url saved to profiles table after upload
+- Resume PDF uploaded to the private `resumes` bucket at `{user_id}/resume.pdf`; uploading the same key replaces the existing file
+- `resume_pdf_key` saved to profiles table after upload; mint signed URLs only when needed
 - is_complete set to true when all required fields are filled
 - Completion percentage and missing fields calculated and saved
 - Form pre-fills with existing data on return visits
@@ -149,8 +148,8 @@ Generate a clean professional PDF resume from current profile data using GPT-4o.
   - Polished work experience bullet points
   - Clean professional language throughout
 - @react-pdf/renderer renders GPT-4o output into clean single-page PDF using renderToBuffer()
-- Buffer uploaded to InsForge Storage at resumes/{user_id}/resume.pdf with upsert: true
-- resume_pdf_url updated in profiles table
+- Buffer uploaded to the private `resumes` bucket at `{user_id}/resume.pdf`, replacing the existing object
+- `resume_pdf_key` updated in profiles table; signed URLs are generated on demand
 
 ---
 

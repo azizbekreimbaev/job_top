@@ -120,17 +120,12 @@ const { error } = await insforge
 // Upload file
 const { data, error } = await insforge.storage
   .from("resumes")
-  .upload(`${userId}/resume.pdf`, fileBuffer, {
-    contentType: "application/pdf",
-    upsert: true, // overwrites existing file
-  });
+  .upload(`${userId}/resume.pdf`, pdfBlob);
 
-// Get public URL
-const { data } = insforge.storage
+// Mint a short-lived URL for the private object when needed
+const { data: signedUrlData, error: signedUrlError } = await insforge.storage
   .from("resumes")
-  .getPublicUrl(`${userId}/resume.pdf`);
-
-const url = data.publicUrl;
+  .createSignedUrl(`${userId}/resume.pdf`, 900);
 ```
 
 **Storage paths:**
@@ -139,8 +134,9 @@ const url = data.publicUrl;
 
 **Rules:**
 
-- Always use `upsert: true` for base resume uploads — overwrites existing file
-- Always save the public URL back to the DB after upload
+- Uploading the exact base-resume key replaces the existing object
+- Always save the object key to `profiles.resume_pdf_key`
+- Never persist signed URLs; generate them on demand for private downloads
 - Never write files to disk — always upload buffer directly to storage
 
 ---
@@ -639,10 +635,10 @@ const buffer = await renderToBuffer(<ResumePDF profile={profile} />)
 // Upload directly to InsForge Storage
 await insforge.storage
   .from('resumes')
-  .upload(`${userId}/resume.pdf`, buffer, {
-    contentType: 'application/pdf',
-    upsert: true
-  })
+  .upload(
+    `${userId}/resume.pdf`,
+    new Blob([buffer], { type: 'application/pdf' })
+  )
 ```
 
 **Supported CSS properties:**
@@ -655,7 +651,7 @@ Only use these — others are silently ignored:
 - Always use `renderToBuffer` — not `renderToStream` or `PDFDownloadLink`
 - PDF generation only in `app/api/resume/` routes
 - Generated buffer uploaded directly to InsForge Storage — never written to disk
-- Always save public URL to DB after upload
+- Always save the private object key to DB after upload; never persist signed URLs
 
 ---
 

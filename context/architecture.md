@@ -186,7 +186,7 @@ GPT-4o processes content
         ↓
 New PDF uploaded to InsForge Storage
         ↓
-URL saved to profiles table
+Private object key saved to profiles table
 ```
 
 ---
@@ -217,8 +217,10 @@ URL saved to profiles table
 | linkedin_url        | text        |                                              |
 | portfolio_url       | text        |                                              |
 | work_authorization  | text        | citizen / permanent_resident / visa_required |
-| resume_pdf_url      | text        | InsForge Storage URL of current resume       |
+| resume_pdf_key      | text        | Private Storage key of current resume        |
 | is_complete         | boolean     | True when all required fields filled         |
+| completion_percentage | integer  | Profile completion from 0 to 100              |
+| missing_fields      | text[]      | Required fields still missing                 |
 | created_at          | timestamptz |                                              |
 | updated_at          | timestamptz |                                              |
 
@@ -279,11 +281,11 @@ URL saved to profiles table
 
 ## InsForge Storage
 
-| Bucket  | Path                         | Contents                  |
-| ------- | ---------------------------- | ------------------------- |
-| resumes | resumes/{user_id}/resume.pdf | Current active resume PDF |
+| Bucket  | Object key                  | Contents                  |
+| ------- | --------------------------- | ------------------------- |
+| resumes | {user_id}/resume.pdf        | Current active resume PDF |
 
-Access: authenticated users only, own files only.
+Access: private bucket. Authenticated users can read, upload, replace, and delete only their exact `{user_id}/resume.pdf` object. Consumers mint a short-lived signed URL when a browser URL is required; signed URLs are never persisted.
 
 ---
 
