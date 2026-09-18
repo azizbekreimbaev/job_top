@@ -6,12 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --test tests/profile.test.mjs"
   },
   "dependencies": {
     "@insforge/sdk": "^1.5.2",
+    "@react-pdf/renderer": "^4.9.0",
     "next": "16.3.5",
     "node": "^26.8.2",
+    "openai": "^7.18.0",
+    "pdf-parse": "^2.4.5",
     "posthog-js": "^1.433.5",
     "posthog-node": "^5.52.4",
     "react": "19.2.8",

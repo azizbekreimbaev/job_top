@@ -208,7 +208,7 @@ Private object key saved to profiles table
 | skills              | text[]      | Array of skill tags                          |
 | industries          | text[]      | Industries worked in                         |
 | work_experience     | jsonb       | Array of up to 3 roles                       |
-| education           | jsonb       | Degree, field, institution, year             |
+| education           | jsonb       | Array of up to 5 education entries           |
 | job_titles_seeking  | text[]      | Roles they want                              |
 | remote_preference   | text        | remote / onsite / hybrid / any               |
 | preferred_locations | text[]      | Optional preferred locations                 |

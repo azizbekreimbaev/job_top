@@ -1,43 +1,49 @@
-# Memory — Database Foundation Complete
+# Memory — Phase 2 Feature 08 Complete
 
-Last updated: 2026-09-17 12:15 +09:00
+Last updated: 2026-09-18 +09:00
 
 ## What was built
 
-- Completed Phase 1 Feature 04: Database Schema and applied it to the connected InsForge backend.
-- Added `migrations/20260917_feature_04_database_schema.sql` for the `profiles`, `agent_runs`, `jobs`, and `agent_logs` tables, their constraints, indexes, relationships, row-level security policies, and private resume-object policies.
-- Created the private `resumes` bucket. The current resume uses the object key `{user_id}/resume.pdf`.
-- Updated `context/architecture.md`, `context/build-plan.md`, `context/library-docs.md`, `context/progress-tracker.md`, and `context/ui-registry.md` to reflect the implemented data and storage model.
+- Completed Phase 2 Feature 08: authenticated resume PDF generation from the user’s last explicitly saved profile.
+- Added `POST /api/resume/generate`, a server-only resume generation service, strict generated-content validation, and an ATS-safe single-column A4 document rendered with `@react-pdf/renderer`.
+- Added resume-readiness checks, deep saved-profile comparison, unsaved-change blocking, inline replacement confirmation, accessible generation states, and reuse of the authenticated `/api/resume/view` review route.
+- Extended education from one object to a repeatable list capped at five across profile editing, persistence, AI extraction, completion calculation, undo snapshots, saved-state comparison, and generated resumes.
+- Added and applied `migrations/20260918_multiple_education_entries.sql`, converting existing education objects to arrays, changing the default to `[]`, and enforcing the five-entry database cap.
+- Updated profile/resume tests and the architecture, library guidance, progress tracker, and UI registry.
 
 ## Decisions made
 
-- Profiles are created on the user's first profile save. A missing profile is treated as incomplete.
-- Resume tailoring remains outside the product scope, so no tailoring columns were added.
-- Store `profiles.resume_pdf_key`, not a public or expiring URL. Generate short-lived signed URLs only when a private resume needs browser access.
-- Enforce ownership both through `auth.uid()` row-level security and composite foreign keys that prevent jobs or logs from referencing another user's records.
+- Resume generation uses exact model `gpt-5.6-luna`, low reasoning effort, strict JSON Schema Structured Outputs, `store: false`, and a client timeout.
+- AI generates only a factual professional summary and ordered work bullets. Identity, contact details, skills, role facts, dates, and education are rendered deterministically from saved profile data.
+- Generation never saves form edits. Any difference from the saved baseline blocks generation until the user explicitly saves.
+- The canonical private object remains `{user_id}/resume.pdf`; replacement occurs only after AI validation, PDF rendering, and the one-page guard succeed.
+- Root PDF wrapping remains enabled because disabling it can shrink the page media box in `@react-pdf/renderer` 4.9.0. A post-render page-count check enforces exactly one true A4 page.
+- Education persists as a JSON array of up to five entries. Legacy single objects are normalized to one-entry arrays; profile completion requires any one complete entry; generated resumes include complete entries only.
+- No new PostHog event was added because the project permits only its four documented events.
 
 ## Problems solved
 
-- Reconciled the stale build-plan reference to resume-tailoring fields with the current product scope.
-- Replaced the obsolete public resume URL pattern with private object keys and signed URLs.
-- InsForge's schema tool controls its own transaction, so the migration intentionally contains no explicit `BEGIN` or `COMMIT` statements.
-- Removed default anonymous table privileges in addition to enabling row-level security.
+- Fixed the live profile-save failure caused by the original database constraint requiring education to be a JSON object. The connected InsForge database now has an array default and a maximum-five constraint, with zero remaining object-shaped rows.
+- Preserved existing education data by wrapping non-empty objects into arrays and converting empty objects to empty arrays.
+- Verified the densest supported generated resume—65-word summary, 12 skills, three roles with three capped bullets each, and five education entries—renders as one readable A4 page without clipping or overlap.
+- Confirmed that unexpected text at the top of a generated resume comes from the saved `full_name` value, not from AI generation; identity fields are intentionally never rewritten by the model.
 
 ## Current state
 
-- Phase 1 Features 01 through 04 are complete. Phase 2 Feature 05, Profile Page — Full UI, is next.
-- The live backend contains four empty application tables, four application-table RLS policies, four resume-object policies, and a private `resumes` bucket.
-- Schema inspection confirmed all intended constraints, indexes, relationships, policies, and authenticated grants. Invalid profile completion data was rejected and no test records remain.
-- The InsForge admin tool does not permit changing session claims, so a two-user request-level impersonation test was not possible. Cross-user isolation was verified from the deployed RLS definitions, revoked anonymous grants, and composite ownership constraints.
-- The Feature 04 review passed all three layers with no implementation issues found.
+- Phase 1 Features 01–04 and Phase 2 Features 05–08 are complete. Feature 09 is next.
+- Profile save, private resume upload/replacement/review, AI extraction/undo, repeatable education, and resume generation are implemented end to end.
+- The live education schema migration is applied and verified: default `[]`, array constraint active, maximum five entries, and no legacy object rows remain.
+- Twenty-four unit tests pass. ESLint, strict TypeScript, `git diff --check`, the Next.js production build, one-page PDF metadata/text checks, and rendered PNG visual inspection pass.
+- The configured service credentials remain server-only and are not persisted in this memory.
+- Changes remain in the working tree/index and have not been committed.
 
 ## Next session starts with
 
-Run `/remember restore`, then use `/architect` for Phase 2 Feature 05: Profile Page — Full UI.
+Run `/remember restore`, confirm this state, then use `/architect` for Phase 3 Feature 09: Find Jobs Page — Full UI.
 
-Build the complete profile interface with mock data only, following the existing design tokens and UI rules. Do not add save logic yet; that belongs to Feature 06. Read the required context files in the order specified by `AGENTS.md` before implementation.
+Read the required project context files in the exact order specified by `AGENTS.md`. Preserve the established authenticated application shell, design tokens, profile contracts, four-event PostHog allowlist, and user-owned working-tree changes.
 
 ## Open questions
 
-- Required fields and the exact completion-percentage weighting must be finalized before Feature 06 implements profile persistence.
-- The production application domain is still unspecified. Before launch, explicitly allowlist its `/callback` URL in InsForge and configure the deployment application URL.
+- The production application domain remains unspecified; explicitly allowlist its `/callback` URL before launch.
+- No Feature 08 blockers remain.

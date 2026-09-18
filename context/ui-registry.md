@@ -197,51 +197,70 @@ Last updated: 2026-09-17
 | Property         | Class                                                   |
 | ---------------- | ------------------------------------------------------- |
 | Background       | `bg-surface`                                            |
-| Border           | `border border-error/20`                                |
+| Border           | Incomplete `border-error/20`, complete `border-success/25` |
 | Border radius    | `rounded-2xl`, missing-field badges `rounded-sm`        |
 | Text — primary   | `text-text-primary text-lg font-semibold`               |
 | Text — secondary | `text-text-secondary text-sm leading-5`                 |
 | Spacing          | Container `p-6`, badge row `mt-5 gap-2`                 |
 | Hover state      | `none`                                                  |
 | Shadow           | `shadow-sm`                                             |
-| Accent usage     | Error state `stroke-error`, `bg-error/10`, `text-error` |
+| Accent usage     | Incomplete `stroke-error`, complete `stroke-success`, badges use matching semantic tokens |
 
-**Pattern notes:** Incomplete-profile messaging uses a restrained error border and compact uppercase missing-field badges on a white card. The completion ring is an SVG progress treatment using tokenized strokes rather than component-level color values.
+**Pattern notes:** Profile status changes in place: incomplete profiles use a restrained error treatment and compact uppercase missing-field badges, while 100% completion switches the same card and SVG ring to success tokens and removes the badges. Ring progress is calculated dynamically in 10% increments.
 
 ### Resume Upload Card
 
 File: components/profile/ResumeUpload.tsx
-Last updated: 2026-09-17
+Last updated: 2026-09-18
 
 | Property         | Class                                                                       |
 | ---------------- | --------------------------------------------------------------------------- |
-| Background       | Card `bg-surface`, drop zone `bg-surface-secondary`                        |
-| Border           | Card `border border-border`, drop zone `border-dashed border-border-muted` |
+| Background       | Card `bg-surface`, drop zone `bg-surface-secondary`, success row `bg-success-lightest` |
+| Border           | Card `border-border`; drop zone `border-dashed border-border-muted`, active `border-2 border-accent ring-4 ring-accent/15` |
 | Border radius    | Card `rounded-2xl`, drop zone `rounded-xl`, actions `rounded-md`           |
 | Text — primary   | `text-text-primary`, title `text-lg font-semibold`                         |
 | Text — secondary | `text-text-secondary text-sm`                                              |
 | Spacing          | Card `p-6`, drop zone `px-6 py-10`, footer `pt-5`                          |
-| Hover state      | Secondary `hover:bg-surface-secondary`, primary `hover:bg-accent-dark`     |
-| Shadow           | Card and upload action `shadow-sm`                                         |
+| Hover state      | Secondary `hover:bg-surface-secondary`, review row `hover:border-success`, drag target `scale-[1.01] bg-accent-muted` |
+| Shadow           | Card and upload action `shadow-sm`, active drop target `shadow-md`          |
 | Accent usage     | Upload icon `stroke-accent`, primary `bg-accent text-accent-foreground`    |
 
-**Pattern notes:** Resume upload uses a large centered dashed drop zone followed by a border-separated action footer. Primary generation actions remain purple; file selection remains a quiet white secondary action.
+**Pattern notes:** Resume upload begins immediately after picker selection or drop. Drag-active state uses a thicker accent border, ring, slight scale, stronger shadow, and inverted icon. Pending uploads show a spinner and pulsing progress bar for at least 1.2 seconds. A successful private upload or generation becomes a semantic success row linking to the on-demand signed review URL; validation failures remain inline. Once a resume exists, the nested `bg-surface-secondary` AI panel presents a filled accent action for safe fill-empty extraction and a bordered secondary replacement action. Replacement uses an inline semantic warning confirmation, extraction feedback uses accessible live regions, and Undo Extraction remains visible while a snapshot exists. Resume generation reuses the primary accent button, semantic live-region feedback, and inline `border-warning/30 bg-warning/10` confirmation pattern; it is disabled with a specific explanation for unsaved or resume-incomplete profiles.
+
+### Generated Resume Document
+
+File: components/profile/ResumeDocument.tsx
+Last updated: 2026-09-18
+
+| Property         | Class / value                                                    |
+| ---------------- | ---------------------------------------------------------------- |
+| Background       | White A4 document                                                |
+| Border           | Full-width accent SVG rule                                       |
+| Border radius    | `none`                                                           |
+| Text â€” primary   | Helvetica, `rgb(16, 24, 40)`                                     |
+| Text â€” secondary | Helvetica, `rgb(75, 85, 99)` / `rgb(107, 114, 128)`              |
+| Spacing          | 34pt page padding, 8pt section spacing                            |
+| Hover state      | `none`                                                           |
+| Shadow           | `none`                                                           |
+| Accent usage     | `rgb(124, 92, 252)` section headings, current title, and top rule |
+
+**Pattern notes:** Generated resumes use a single-column ATS-safe reading order with compact typography, no icons or tables, and deterministic content caps. Complete education entries render in saved order with compact spacing. The PDF palette mirrors the application tokens in the only format available to the server renderer. A rendered page-count guard prevents multi-page files from replacing the canonical resume.
 
 ### Profile Information Form
 
 File: components/profile/ProfileForm.tsx
-Last updated: 2026-09-17
+Last updated: 2026-09-18
 
 | Property         | Class                                                                               |
 | ---------------- | ----------------------------------------------------------------------------------- |
-| Background       | Card and inputs `bg-surface`, filled/disabled inputs `bg-surface-secondary`        |
+| Background       | Card and inputs `bg-surface`, disabled inputs and role panels `bg-surface-secondary` |
 | Border           | Card, fields, and section dividers `border-border`                                 |
 | Border radius    | Card `rounded-2xl`, controls `rounded-md`, role panel `rounded-xl`                 |
 | Text — primary   | Section titles `text-text-primary font-semibold`, controls `text-text-primary text-sm` |
 | Text — secondary | Labels `text-text-secondary text-xs font-medium uppercase tracking-wide`           |
 | Spacing          | Card `p-6`, form `space-y-10`, sections `pt-10`, grid `gap-x-5 gap-y-5`            |
-| Hover state      | Primary `hover:bg-accent-dark`, add controls `hover:text-text-primary`              |
+| Hover state      | Primary `hover:bg-accent-dark`, add/remove controls use semantic text hover tokens   |
 | Shadow           | Card and controls `shadow-sm`                                                       |
 | Accent usage     | Controls `focus:border-accent focus:ring-1 focus:ring-accent`, primary `bg-accent`  |
 
-**Pattern notes:** Long application forms use a responsive one-to-two-column grid, 44px controls, compact uppercase labels, and border-separated sections. Filled mock values use the secondary surface while required empty fields remain white, matching the supplied profile reference.
+**Pattern notes:** Long application forms use a responsive one-to-two-column grid, 44px controls, compact uppercase labels, and border-separated sections. Skills and industries use removable `bg-surface-tertiary` chips. Work history and education use the same repeatable `rounded-xl` panel pattern with right-aligned add/remove text actions; roles are capped at three and education at five. Extraction-supported controls are fully controlled and receive a temporary `border-accent ring-2 ring-accent/20` review highlight after AI population. Pending save, upload, or extraction disables the editor and changes the relevant primary label. Save feedback appears directly above the submit action with semantic error, warning, or success tokens and an accessible live region.

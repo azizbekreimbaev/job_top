@@ -116,20 +116,22 @@ Wire profile form to InsForge DB.
 
 ### 07 AI Profile Extraction from Resume
 
-Extract from Resume button — GPT-4o reads uploaded PDF and auto-fills profile form fields.
+Explicit extraction controls use `gpt-5.6-luna` to read the stored private PDF and populate reviewable profile form state.
 
 **UI:**
 
-- Extract from Resume button appears after resume is uploaded
+- Extract & Fill Empty Fields and confirmed Replace Existing Fields controls appear after resume is uploaded
 - Loading state while processing
-- Form fields populate automatically after extraction
-- User reviews and edits if needed before saving
+- Form fields populate without overwriting existing values by default
+- Changed fields are highlighted and the exact pre-extraction state can be restored with Undo Extraction
+- User reviews and edits if needed before saving; extraction never persists directly
 
 **Logic:**
 
 - pdf-parse extracts raw text from uploaded PDF buffer
 - If extracted text is empty or too short — return error: "Could not extract text from this PDF. Please try a different file."
-- GPT-4o reads extracted text and returns structured JSON matching all profile field names
+- `gpt-5.6-luna` uses the Responses API with low reasoning, `store: false`, and strict Structured Outputs
+- Only evidence-backed supported fields are returned; authenticated identity and preference fields are excluded
 - Form fields populated with extracted data
 - User saves manually after reviewing
 
@@ -137,17 +139,17 @@ Extract from Resume button — GPT-4o reads uploaded PDF and auto-fills profile 
 
 ### 08 Resume PDF Generation from Profile
 
-Generate a clean professional PDF resume from current profile data using GPT-4o.
+Generate a clean professional PDF resume from current profile data using GPT current model that we are using gpt-5.6-luna.
 
 **Logic:**
 
 - POST /api/resume/generate
 - Reads current profile data from profiles table
-- GPT-4o generates professional resume content:
+- GPT-5.6-luna generates professional resume content:
   - Professional summary paragraph
   - Polished work experience bullet points
   - Clean professional language throughout
-- @react-pdf/renderer renders GPT-4o output into clean single-page PDF using renderToBuffer()
+- @react-pdf/renderer renders validated `gpt-5.6-luna` output into a clean single-page A4 PDF using renderToBuffer()
 - Buffer uploaded to the private `resumes` bucket at `{user_id}/resume.pdf`, replacing the existing object
 - `resume_pdf_key` updated in profiles table; signed URLs are generated on demand
 
