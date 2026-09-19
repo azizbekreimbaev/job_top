@@ -1,12 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const navItems = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Find Jobs", href: "/find-jobs" },
-  { label: "Profile", href: "/profile" },
-];
-
 export function Navbar() {
   return (
     <header className="border-b border-border bg-surface">
@@ -14,18 +8,6 @@ export function Navbar() {
         <Link href="/" aria-label="JobPilot home" className="shrink-0">
           <Image src="/logo.png" alt="JobPilot" width={124} height={42} />
         </Link>
-
-        <nav aria-label="Main navigation" className="hidden items-center gap-10 md:flex">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-sm font-medium text-text-dark transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
 
         <Link
           href="/login"

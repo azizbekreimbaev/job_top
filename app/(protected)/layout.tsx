@@ -1,33 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { signOut } from "@/actions/auth";
-import { PostHogIdentity } from "@/components/analytics/PostHogIdentity";
 import { ApplicationNavigation } from "@/components/layout/ApplicationNavigation";
-import { createInsforgeServer } from "@/lib/insforge-server";
+import { ProtectedIdentity } from "@/components/layout/ProtectedIdentity";
 
-export default async function ProtectedLayout({ children }: LayoutProps<"/">) {
-  const insforge = await createInsforgeServer();
-  const { data, error } = await insforge.auth.getCurrentUser();
-
-  if (error || !data?.user) {
-    if (error) {
-      console.error("[ProtectedLayout] Session verification failed", {
-        code: error.error,
-        statusCode: error.statusCode,
-      });
-    }
-    redirect("/login");
-  }
-
+export default function ProtectedLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="min-h-screen bg-background">
-      <PostHogIdentity
-        userId={data.user.id}
-        email={data.user.email}
-        name={data.user.profile?.name}
-      />
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-6 px-5 sm:px-8">
           <Link href="/" aria-label="JobPilot home" className="shrink-0">
@@ -46,6 +27,9 @@ export default async function ProtectedLayout({ children }: LayoutProps<"/">) {
           </form>
         </div>
       </header>
+      <Suspense>
+        <ProtectedIdentity />
+      </Suspense>
       {children}
     </div>
   );
