@@ -18,6 +18,25 @@ After building any component — update this file with the component name, file 
 
 ## Components
 
+### Find Jobs Search and Results
+
+Files: components/find-jobs/SearchControls.tsx, components/find-jobs/JobFilters.tsx, components/find-jobs/JobsTable.tsx, components/find-jobs/MatchScore.tsx, components/find-jobs/JobsPagination.tsx
+Last updated: 2026-09-19 (Feature 11)
+
+| Property         | Class                                                                   |
+| ---------------- | ----------------------------------------------------------------------- |
+| Background       | `bg-surface`, secondary table header `bg-surface-secondary`             |
+| Border           | `border border-border`, rows `border-b border-border`                   |
+| Border radius    | Sections `rounded-xl`, controls `rounded-md`, score bars `rounded-full` |
+| Text — primary   | `text-text-primary text-sm font-semibold`                               |
+| Text — secondary | `text-text-secondary text-sm`, labels `text-xs font-semibold uppercase` |
+| Spacing          | Sections `p-5 sm:p-6`, rows `px-6 py-4`, section gap `space-y-6`        |
+| Hover state      | `hover:bg-surface-secondary`, primary `hover:bg-accent-dark`            |
+| Shadow           | `shadow-sm`                                                             |
+| Accent usage     | `bg-accent text-accent-foreground`, `focus-visible:outline-accent`      |
+
+**Pattern notes:** Search and filter controls use 48px and 40px heights respectively. Result tables use white rows, a secondary-surface header, token borders, horizontal overflow on narrow screens, and green/blue/orange score fills matching the approved Find Jobs reference. Search pending state disables all inputs and uses `disabled:opacity-70 disabled:cursor-wait` on the primary action. Success feedback uses `border-success-light bg-success-lightest text-success-dark`; errors use `border-error bg-surface text-error` with an inline underlined Profile CTA when completion is required. Filter and sort controls use the normal surface with accent focus states; URL-backed filter changes reset to page one. Pagination links use token hover/focus states, the current page uses `border-accent-light bg-accent-muted text-accent`, and unavailable Previous/Next states use `text-text-muted opacity-60 cursor-not-allowed`.
+
 ### Marketing Navbar
 
 File: components/layout/Navbar.tsx
@@ -249,7 +268,7 @@ Last updated: 2026-09-18
 ### Profile Information Form
 
 File: components/profile/ProfileForm.tsx
-Last updated: 2026-09-18
+Last updated: 2026-09-19
 
 | Property         | Class                                                                               |
 | ---------------- | ----------------------------------------------------------------------------------- |
@@ -263,4 +282,4 @@ Last updated: 2026-09-18
 | Shadow           | Card and controls `shadow-sm`                                                       |
 | Accent usage     | Controls `focus:border-accent focus:ring-1 focus:ring-accent`, primary `bg-accent`  |
 
-**Pattern notes:** Long application forms use a responsive one-to-two-column grid, 44px controls, compact uppercase labels, and border-separated sections. Skills and industries use removable `bg-surface-tertiary` chips. Work history and education use the same repeatable `rounded-xl` panel pattern with right-aligned add/remove text actions; roles are capped at three and education at five. Extraction-supported controls are fully controlled and receive a temporary `border-accent ring-2 ring-accent/20` review highlight after AI population. Pending save, upload, or extraction disables the editor and changes the relevant primary label. Save feedback appears directly above the submit action with semantic error, warning, or success tokens and an accessible live region.
+**Pattern notes:** Long application forms use a responsive one-to-two-column grid, 44px controls, compact uppercase labels, and border-separated sections. Skills and industries use removable `bg-surface-tertiary` chips. Work history and education use the same repeatable `rounded-xl` panel pattern with right-aligned add/remove text actions; roles are capped at three and education at five. Extraction-supported controls are fully controlled and receive a temporary `border-accent ring-2 ring-accent/20` review highlight after AI population. Every editable control must also update the canonical profile state; after saving, the database-returned row becomes the saved baseline so success and unsaved-change states reflect persisted data. Pending save, upload, or extraction disables the editor and changes the relevant primary label. Save feedback appears directly above the submit action with semantic error, warning, or success tokens and an accessible live region.

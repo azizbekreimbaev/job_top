@@ -6,9 +6,9 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ## Current Status
 
-**Phase:** Phase 2 — Profile Page
-**Last completed:** 08 Resume PDF Generation from Profile
-**Next:** 09 Find Jobs Page â€” Full UI
+**Phase:** Phase 3 — Find Jobs Page
+**Last completed:** 11 Filter + Sort + Pagination
+**Next:** 12 Job Details Page — Full UI
 
 ---
 
@@ -30,9 +30,9 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ### Phase 3 — Find Jobs Page
 
-- [ ] 09 Find Jobs Page — Full UI
-- [ ] 10 Adzuna Job Discovery
-- [ ] 11 Filter + Sort + Pagination
+- [x] 09 Find Jobs Page — Full UI
+- [x] 10 Adzuna Job Discovery
+- [x] 11 Filter + Sort + Pagination
 
 ### Phase 4 — Job Details Page
 
@@ -82,6 +82,13 @@ Update this file after every completed feature. Any AI agent reading this should
 - The generated document caps summary, skills, roles, and bullets for readability, excludes job preferences and work authorization, and keeps signed review URLs on demand through the existing resume view route.
 - Education is stored as a backward-compatible JSON array with up to five entries. The profile editor supports accessible add/remove controls, extraction can populate multiple entries, completion requires any one complete entry, and generated resumes render complete entries only.
 - The database education constraint and default were migrated from a single JSON object to an array capped at five; existing non-empty education objects are wrapped into one-entry arrays and empty objects become empty arrays.
+- The Find Jobs page matches the supplied search, success, filter, table, score, and pagination design with typed mock data. It remains server-rendered and visual-only until Features 10–11 wire Adzuna discovery and real filtering, sorting, and pagination.
+- Find Jobs score colors follow the approved reference: 90–100 green, 80–89 blue, and below 80 orange. The authenticated shell and visible Sign Out action remain shared across protected routes.
+- Job discovery requires the user’s complete saved profile, queries the country-specific Adzuna IT Jobs endpoint, filters existing provider IDs, and scores new listings with `gpt-5.6-luna` strict Structured Outputs at concurrency three.
+- Discovery runs keep successful partial results, log individual failures, emit only the approved `job_search_started` and `job_found` events, and render the latest 20 persisted jobs while Feature 11 controls remain disabled.
+- Adzuna listings are deduplicated by nullable `external_job_id` under a user/source unique index. Search-result salaries use the endpoint country’s currency and contract data is normalized to the database enum.
+- Find Jobs filtering is URL-backed and server-rendered against InsForge: company/role text search is case-insensitive, match ranges share the 70 threshold, ordering is deterministic, and exact-count pagination returns 10 jobs per page.
+- Adzuna search remains country-endpoint scoped. The current product supports US, UK, Canada, and Australia; other locations, including Korea, fall back to the US endpoint and may return no results until another provider or market integration is added.
 
 ---
 

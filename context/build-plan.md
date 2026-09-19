@@ -188,7 +188,7 @@ Agent calls Adzuna API to find jobs matching user's search criteria, scores them
   - Detect country from location input — default to 'us'
 - For each job returned:
   - Extract title, company, location, salary, description snippet, redirect_url
-  - GPT-4o scores job against user profile:
+  - GPT-5.6-luna scores job against user profile:
     - matchScore — integer 0-100
     - matchReason — one paragraph explanation
     - matchedSkills — skills user has that job requires
@@ -217,7 +217,7 @@ Wire filter tabs, sort dropdown, text search, and pagination to real InsForge DB
 - Sort by Newest — order by found_at descending
 - Sort by Oldest — order by found_at ascending
 - Text search — filter by company name or job title (case insensitive)
-- Pagination — 20 jobs per page, total count shown
+- Pagination — 10 jobs per page, total count shown
 
 ---
 
@@ -232,7 +232,7 @@ Build the complete job details page UI. Job data from DB is already available fr
 - Back to Jobs link
 - Job header — company logo placeholder, job title, company name, match score badge with percentage, View Job Post button (links to redirect_url)
 - Info cards row — Salary Est., Location, Job Type, Date Found
-- AI Match Reasoning section — match reason paragraph from GPT-4o
+- AI Match Reasoning section — match reason paragraph from GPT-5.6-luna
 - Required Skills vs Your Profile — matched skills as green badges, missing skills as red/orange badges
 - Job Description section — description content from Adzuna
 - Company Research card — empty state with Research Company button. After research: structured dossier with company overview, tech stack, culture, why this role, interview prep
@@ -255,7 +255,7 @@ Agent researches the company using their public website and builds a structured 
   - Strip subdomain from response.url hostname (e.g. jobs.stripe.com → stripe.com)
   - Construct homepage URL as https://{rootDomain}
   - If response.url still contains "adzuna.com" or fetch throws — fall back to https://www.{company}.com (company name from DB)
-  - If Stagehand gets no meaningful content (oneLiner and productSummary empty) — skip browser research entirely, proceed to GPT-4o synthesis with job description and profile only
+  - If Stagehand gets no meaningful content (oneLiner and productSummary empty) — skip browser research entirely, proceed to GPT-5.6-luna synthesis with job description and profile only
 - Open single Browserbase session with Stagehand
   **Stagehand homepage extraction:**
 
@@ -315,7 +315,7 @@ const page = await stagehand.extract({
 ```
 
 - Close Browserbase session after homepage + max 3 sub-pages
-  **GPT-4o synthesis (runs after browser closes):**
+  **GPT-5.6-luna synthesis (runs after browser closes):**
 
 System prompt:
 
@@ -367,7 +367,7 @@ Temperature: 0.4
 ```
 
 - Save complete dossier to jobs.company_research jsonb column
-- Always return a dossier — never fail silently. If browser research failed, GPT-4o synthesizes from job description and profile alone.
+- Always return a dossier — never fail silently. If browser research failed, GPT-5.6-luna synthesizes from job description and profile alone.
   **PostHog event:** `company_researched` — { userId, jobId, company }
 
 ---

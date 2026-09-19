@@ -57,6 +57,7 @@ export type ProfileActionState = ProfileCompletion & {
   message: string;
   fieldErrors?: Record<string, string>;
   resumeUploaded?: boolean;
+  savedValues?: ProfileFormValues;
 };
 
 export type ResumeUploadActionState = {

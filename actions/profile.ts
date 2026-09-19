@@ -513,13 +513,13 @@ export async function saveProfile(
       profileRecord.resume_pdf_key = resumePdfKey;
     }
 
-    const { error: saveError } = await insforge.database
+    const { data: savedProfile, error: saveError } = await insforge.database
       .from("profiles")
       .upsert(profileRecord)
-      .select("id")
+      .select("*")
       .single();
 
-    if (saveError) {
+    if (saveError || !isRecord(savedProfile)) {
       console.error("[saveProfile] Profile upsert failed", saveError);
       return createErrorState(
         previousState,
@@ -540,6 +540,10 @@ export async function saveProfile(
         ? "Profile and resume saved successfully."
         : "Profile saved successfully.",
       resumeUploaded: Boolean(resumePdfKey),
+      savedValues: createProfileFormValues(savedProfile, {
+        email: authData.user.email,
+        fullName: profile.fullName,
+      }),
     };
   } catch (error) {
     console.error("[saveProfile] Unexpected failure", error);

@@ -210,6 +210,7 @@ const jobRecord = {
   user_id: userId,
   run_id: runId,
   source: "search", // always 'search' for Adzuna jobs
+  external_job_id: job.id,
   source_url: job.redirect_url,
   external_apply_url: job.redirect_url,
   title: job.title,
@@ -233,9 +234,12 @@ const jobRecord = {
 - Always include `category=it-jobs` — never search Adzuna without this filter
 - Never pass `where` if location is empty — omit the parameter entirely
 - `source` is always `'search'` for Adzuna jobs — never any other value
+- Store `job.id` in `external_job_id` and skip listings already saved for the same user/source; the database unique index is the final race-condition guard
 - `salary_is_predicted: "1"` means Adzuna estimated the salary — this is normal
-- Adzuna description is a snippet — GPT-4o scores from it, not a full description
+- Adzuna description is a snippet — GPT-5.6-luna scores from it, not a full description
 - Default country to `'us'` — support `gb`, `au`, `ca` as alternatives
+- Job scoring uses one strict Structured Outputs Responses request per new listing with `gpt-5.6-luna`, low reasoning, `store: false`, and concurrency capped at three
+- A discovery run may complete with partial results; individual failures are logged and never discard successfully saved jobs
 
 ---
 
@@ -284,7 +288,7 @@ const stagehand = new Stagehand({
   apiKey: process.env.BROWSERBASE_API_KEY!,
   projectId: process.env.BROWSERBASE_PROJECT_ID!,
   browserbaseSessionID: session.id,
-  model: { modelName: "openai/gpt-4o", apiKey: process.env.OPENAI_API_KEY! },
+  model: { modelName: "openai/GPT-5.6-luna", apiKey: process.env.OPENAI_API_KEY! },
   disablePino: true,
 });
 
@@ -337,7 +341,7 @@ Replace the existing Stagehand "Company Research Pattern" section in library-doc
 
 ### Company Research Pattern
 
-Three-step process: homepage extraction → sub-page extraction → GPT-4o synthesis.
+Three-step process: homepage extraction → sub-page extraction → GPT-5.6-luna synthesis.
 Job description and user profile come from DB — never re-fetch what you already have.
 Browser's only job is the company website.
 
@@ -398,7 +402,7 @@ const subPageData = await stagehand.extract({
   }),
 });
 
-// Step 3 — GPT-4o synthesis (after browser closes)
+// Step 3 — GPT-5.6-luna synthesis (after browser closes)
 // Feed three data sources: company research + job from DB + profile from DB
 const systemPrompt = `You are a sharp career strategist preparing a candidate to apply for a specific role. You are given (a) research collected from the company's own website, (b) the job posting, and (c) the candidate's profile. Produce a concise, concrete briefing that gives this specific candidate an edge for this specific role.
 
@@ -439,7 +443,7 @@ Skills: ${profile.skills.join(", ")}
 Work history: ${JSON.stringify(profile.work_experience)}`;
 
 const response = await openai.chat.completions.create({
-  model: "gpt-4o",
+  model: "GPT-5.6-luna",
   response_format: { type: "json_object" },
   temperature: 0.4,
   messages: [
@@ -468,7 +472,7 @@ const response = await openai.chat.completions.create({
 - Always use `extract()` with a Zod schema — never parse raw HTML or use regex
 - Always wrap every `act()` and `extract()` in try/catch
 - Always call `await stagehand.close()` when done — ends the Browserbase session
-- Model is always `gpt-4o` — never use other models
+- Model is always `GPT-5.6-luna` — never use other models
 - Temperature is `0.4` for synthesis — grounded but flexible enough to make real connections
 - Max 3 sub-pages — never exceed this on free plan
 - Always close session in finally block — never leave sessions open even if research fails

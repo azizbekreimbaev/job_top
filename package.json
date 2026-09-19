@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test tests/profile.test.mjs"
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@insforge/sdk": "^1.5.2",

@@ -303,7 +303,13 @@ export function ProfileForm({
               <span className={labelClassName}>Work Authorization</span>
               <select
                 name="workAuthorization"
-                defaultValue={values.workAuthorization}
+                value={values.workAuthorization}
+                onChange={(event) =>
+                  updateValues({
+                    workAuthorization: event.target
+                      .value as ProfileFormValues["workAuthorization"],
+                  })
+                }
                 className={inputClassName}
               >
                 <option value="">Select status</option>
@@ -647,6 +653,12 @@ export function ProfileForm({
               <input
                 name="jobTitlesSeeking"
                 defaultValue={values.jobTitlesSeeking.join(", ")}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  updateValues({
+                    jobTitlesSeeking: normalizeStringList(nextValue.split(",")),
+                  });
+                }}
                 placeholder="Frontend Engineer, React Developer"
                 className={inputClassName}
               />
@@ -655,7 +667,13 @@ export function ProfileForm({
               <span className={labelClassName}>Remote Preference</span>
               <select
                 name="remotePreference"
-                defaultValue={values.remotePreference}
+                value={values.remotePreference}
+                onChange={(event) =>
+                  updateValues({
+                    remotePreference: event.target
+                      .value as ProfileFormValues["remotePreference"],
+                  })
+                }
                 className={inputClassName}
               >
                 <option value="">Select preference</option>
@@ -671,7 +689,10 @@ export function ProfileForm({
               </span>
               <input
                 name="salaryExpectation"
-                defaultValue={values.salaryExpectation}
+                value={values.salaryExpectation}
+                onChange={(event) =>
+                  updateValues({ salaryExpectation: event.target.value })
+                }
                 placeholder="E.g. $120k+"
                 className={inputClassName}
               />
@@ -683,6 +704,12 @@ export function ProfileForm({
               <input
                 name="preferredLocations"
                 defaultValue={values.preferredLocations.join(", ")}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  updateValues({
+                    preferredLocations: normalizeStringList(nextValue.split(",")),
+                  });
+                }}
                 placeholder="E.g. New York, London"
                 className={inputClassName}
               />

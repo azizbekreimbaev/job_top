@@ -103,7 +103,11 @@ export function ProfileEditor({
       lastHandledActionState.current !== state &&
       state.status === "success"
     ) {
-      setSavedValues(cloneProfileValues(valuesRef.current));
+      const persistedValues = createEditableProfileValues(
+        state.savedValues ?? valuesRef.current,
+      );
+      setValues(persistedValues);
+      setSavedValues(cloneProfileValues(persistedValues));
       setHasUserEditedForm(false);
     }
     lastHandledActionState.current = state;

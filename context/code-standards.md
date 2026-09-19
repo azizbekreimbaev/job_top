@@ -308,7 +308,7 @@ Approved dependencies for this project:
 - `@insforge/sdk` — InsForge client, SSR auth helpers, and middleware session refresh
 - `@browserbasehq/sdk` — Browserbase sessions
 - `@browserbasehq/stagehand` — AI browser control
-- `openai` — GPT-4o API
+- `openai` — GPT-5.6-luna API
 - `posthog-js` — PostHog browser client
 - `posthog-node` — PostHog server client
 - `@react-pdf/renderer` — Resume PDF generation
