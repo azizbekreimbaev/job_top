@@ -16,6 +16,25 @@ export type AdzunaJob = {
   category: { tag: string; label: string };
 };
 
+export type JobProvider = "searchapi" | "adzuna";
+
+export type DiscoveredJob = {
+  externalId: string;
+  provider: JobProvider;
+  title: string;
+  company: string;
+  location: string | null;
+  description: string;
+  sourceUrl: string;
+  applyUrl: string;
+  salary: string | null;
+  jobType: "fulltime" | "parttime" | "contract" | null;
+  responsibilities: string[];
+  requirements: string[];
+  niceToHave: string[];
+  benefits: string[];
+};
+
 export type JobMatch = {
   matchScore: number;
   matchReason: string;
@@ -30,6 +49,28 @@ export type JobListItem = {
   matchScore: number;
   salary: string | null;
   dateFound: string;
+};
+
+export type JobDetails = {
+  id: string;
+  title: string;
+  company: string;
+  location: string | null;
+  salary: string | null;
+  jobType: "fulltime" | "parttime" | "contract" | null;
+  aboutRole: string | null;
+  responsibilities: string[];
+  requirements: string[];
+  niceToHave: string[];
+  benefits: string[];
+  matchScore: number;
+  matchReason: string;
+  matchedSkills: string[];
+  missingSkills: string[];
+  sourceUrl: string;
+  applyUrl: string;
+  dateFound: string;
+  descriptionIsComplete: boolean;
 };
 
 export type JobMatchFilter = "all" | "high" | "low";

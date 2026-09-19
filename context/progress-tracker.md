@@ -6,9 +6,9 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ## Current Status
 
-**Phase:** Phase 3 — Find Jobs Page
-**Last completed:** 11 Filter + Sort + Pagination
-**Next:** 12 Job Details Page — Full UI
+**Phase:** Phase 4 — Job Details Page
+**Last completed:** 12 Job Details Page — Full UI
+**Next:** 13 Company Research Agent
 
 ---
 
@@ -36,7 +36,7 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ### Phase 4 — Job Details Page
 
-- [ ] 12 Job Details Page — Full UI
+- [x] 12 Job Details Page — Full UI
 - [ ] 13 Company Research Agent
 
 ### Phase 5 — Dashboard
@@ -89,6 +89,11 @@ Update this file after every completed feature. Any AI agent reading this should
 - Adzuna listings are deduplicated by nullable `external_job_id` under a user/source unique index. Search-result salaries use the endpoint country’s currency and contract data is normalized to the database enum.
 - Find Jobs filtering is URL-backed and server-rendered against InsForge: company/role text search is case-insensitive, match ranges share the 70 threshold, ordering is deterministic, and exact-count pagination returns 10 jobs per page.
 - Adzuna search remains country-endpoint scoped. The current product supports US, UK, Canada, and Australia; other locations, including Korea, fall back to the US endpoint and may return no results until another provider or market integration is added.
+- Job details are server-rendered from a column-specific, current-user-scoped InsForge lookup at `/find-jobs/[id]`; malformed, missing, and unowned IDs use the route not-found state, while database failures use a retryable error boundary.
+- Job-detail cards follow the supplied 1024px reference canvas with responsive metadata, semantic match and skill treatments, safe external job links, and the company-research empty state. Research remains intentionally unwired until Feature 13.
+- Saved-job table rows now expose one stretched, keyboard-focusable link to their owned detail route without introducing a client component.
+- Discovery now uses one SearchAPI Google Jobs request as the primary source and stores complete descriptions plus structured sections. Only SearchAPI HTTP 429 falls back to Adzuna; rejected credentials are reported as configuration errors.
+- Exact normalized title-and-company matches can upgrade saved Adzuna previews with SearchAPI data. Remaining Adzuna rows are labeled “Job Description Preview” and link safely to the original full listing.
 
 ---
 

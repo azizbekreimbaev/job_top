@@ -141,6 +141,24 @@ const { data: signedUrlData, error: signedUrlError } = await insforge.storage
 
 ---
 
+## SearchAPI Google Jobs
+
+`lib/searchapi.ts` is the primary discovery client. It sends one request per
+user search, keeps at most the first ten Google Jobs results, and stores the
+complete `description`, structured highlights, salary, schedule, sharing URL,
+and direct apply URL. Authentication uses `SEARCHAPI_API_KEY` through the
+`Authorization: Bearer` header.
+
+Only HTTP `429` activates the Adzuna fallback. HTTP `401` is a visible
+configuration error, while validation, provider, timeout, and network failures
+remain provider errors and do not spend an Adzuna request. SearchAPI IDs use a
+stable `searchapi:` fingerprint derived from the sharing and apply links.
+
+When a SearchAPI result exactly matches a saved preview by normalized title and
+company, discovery enriches that row with the complete description and
+structured sections. Unmatched Adzuna rows remain clearly labeled previews in
+the job-details UI and link to the original listing.
+
 ## Adzuna API
 
 **Check first:** Check AGENTS.md for an installed Adzuna skill. If none exists — use this file and the official Adzuna API docs.
@@ -236,7 +254,7 @@ const jobRecord = {
 - `source` is always `'search'` for Adzuna jobs — never any other value
 - Store `job.id` in `external_job_id` and skip listings already saved for the same user/source; the database unique index is the final race-condition guard
 - `salary_is_predicted: "1"` means Adzuna estimated the salary — this is normal
-- Adzuna description is a snippet — GPT-5.6-luna scores from it, not a full description
+- Adzuna description is a snippet — GPT-5.6-luna scores from it, not a full description. It is used only after SearchAPI returns HTTP 429.
 - Default country to `'us'` — support `gb`, `au`, `ca` as alternatives
 - Job scoring uses one strict Structured Outputs Responses request per new listing with `gpt-5.6-luna`, low reasoning, `store: false`, and concurrency capped at three
 - A discovery run may complete with partial results; individual failures are logged and never discard successfully saved jobs

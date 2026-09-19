@@ -283,3 +283,22 @@ Last updated: 2026-09-19
 | Accent usage     | Controls `focus:border-accent focus:ring-1 focus:ring-accent`, primary `bg-accent`  |
 
 **Pattern notes:** Long application forms use a responsive one-to-two-column grid, 44px controls, compact uppercase labels, and border-separated sections. Skills and industries use removable `bg-surface-tertiary` chips. Work history and education use the same repeatable `rounded-xl` panel pattern with right-aligned add/remove text actions; roles are capped at three and education at five. Extraction-supported controls are fully controlled and receive a temporary `border-accent ring-2 ring-accent/20` review highlight after AI population. Every editable control must also update the canonical profile state; after saving, the database-returned row becomes the saved baseline so success and unsaved-change states reflect persisted data. Pending save, upload, or extraction disables the editor and changes the relevant primary label. Save feedback appears directly above the submit action with semantic error, warning, or success tokens and an accessible live region.
+
+### Job Details Cards
+
+Files: components/job-details/*.tsx, app/(protected)/find-jobs/[id]/page.tsx
+Last updated: 2026-09-19
+
+| Property         | Class                                                                                         |
+| ---------------- | --------------------------------------------------------------------------------------------- |
+| Background       | Page `bg-background` through the protected shell; cards `bg-surface`; icon wells use semantic light surfaces |
+| Border           | Cards `border border-border`; recoverable failure `border-error`                              |
+| Border radius    | Cards `rounded-xl`; icon wells `rounded-xl` or `rounded-full`; controls `rounded-md`          |
+| Text — primary   | Titles `text-text-primary font-semibold` or `font-bold`; body `text-text-primary`             |
+| Text — secondary | Labels `text-text-secondary text-sm uppercase tracking-wide`; supporting copy `text-text-muted` |
+| Spacing          | Page stack `space-y-6`; cards `p-6 sm:p-8`; section content generally begins at `mt-5`       |
+| Hover state      | Primary actions `hover:bg-accent-dark`; secondary actions `hover:bg-surface-secondary`       |
+| Shadow           | Cards `shadow-sm`                                                                             |
+| Accent usage     | Primary CTA `bg-accent`; matched skills use success tokens; gaps and research use accent tokens |
+
+**Pattern notes:** Job-detail content uses a centered 1024px product canvas and a consistent stack of bordered, softly shadowed cards. Metadata collapses from four columns to two and then one. External actions always include visible keyboard focus, safe new-tab attributes, and screen-reader new-tab text. Skill badges use compact semantic pills; card headings pair a small tinted icon well with either an uppercase label or sentence-case title. Complete provider content keeps the standard heading; truncated provider content is explicitly labeled as a preview and ends with a nested `bg-surface-secondary` notice plus the standard accent CTA to the original listing.

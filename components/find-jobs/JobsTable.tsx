@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { JobsPagination } from "@/components/find-jobs/JobsPagination";
 import { MatchScore } from "@/components/find-jobs/MatchScore";
 import type { JobListItem } from "@/types/jobs";
@@ -28,13 +30,13 @@ export function JobsTable({ jobs, totalResults, filters }: Props) {
           </thead>
           <tbody>
             {jobs.length > 0 ? jobs.map((job) => (
-              <tr key={job.id} className="border-b border-border transition-colors last:border-b-0 hover:bg-surface-secondary">
+              <tr key={job.id} className="relative border-b border-border transition-colors last:border-b-0 hover:bg-surface-secondary focus-within:bg-surface-secondary">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <span className="grid size-10 shrink-0 place-items-center rounded-md border border-border bg-surface-tertiary text-text-secondary">
                       <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4 fill-none stroke-current" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M5 20V7.5a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1V20" /><path d="M14 10.5h3a1 1 0 0 1 1 1V20M3 20h17" /><path d="M8 10h3M8 13.5h3M8 17h3M15.5 14h.5M15.5 17h.5" /></svg>
                     </span>
-                    <span className="text-sm font-semibold text-text-primary">{job.company}</span>
+                    <Link href={`/find-jobs/${job.id}`} aria-label={`View ${job.role} at ${job.company}`} className="text-sm font-semibold text-text-primary after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">{job.company}</Link>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-sm font-medium text-text-dark">{job.role}</td>

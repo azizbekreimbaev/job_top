@@ -3,18 +3,17 @@ import "server-only";
 import type { PostHog } from "posthog-node";
 
 import { scoreJob } from "@/agent/job-matcher";
-import { searchAdzunaJobs } from "@/lib/adzuna";
 import { createInsforgeServer } from "@/lib/insforge-server";
 import {
-  detectAdzunaCountry,
-  formatAdzunaSalary,
   mapWithConcurrency,
-  normalizeJobType,
   summarizeProcessingStatuses,
 } from "@/lib/job-discovery";
+import { searchJobsWithFallback } from "@/lib/job-providers";
 import { createPostHogServer } from "@/lib/posthog-server";
+import { createNormalizedJobIdentity } from "@/lib/searchapi-normalization";
+import { SearchApiConfigurationError } from "@/lib/searchapi";
 import { MATCH_THRESHOLD } from "@/lib/utils";
-import type { AdzunaJob, FindJobsSuccess } from "@/types/jobs";
+import type { DiscoveredJob, FindJobsSuccess } from "@/types/jobs";
 import type { ProfileFormValues } from "@/types/profile";
 
 type DiscoverySuccess = {
@@ -31,8 +30,21 @@ export type DiscoveryResult = DiscoverySuccess | DiscoveryFailure;
 
 type ProcessResult =
   | { status: "saved"; strongMatch: boolean }
+  | { status: "enriched" }
   | { status: "duplicate" }
   | { status: "failed" };
+
+type ExistingJob = {
+  id: string;
+  title: string;
+  company: string;
+  externalJobId: string | null;
+};
+
+type JobWorkItem = {
+  job: DiscoveredJob;
+  enrichJobId: string | null;
+};
 
 async function logRunMessage(
   runId: string,
@@ -115,43 +127,57 @@ async function isExistingJob(
 }
 
 async function processJob(
-  job: AdzunaJob,
+  job: DiscoveredJob,
   profile: ProfileFormValues,
   userId: string,
   runId: string,
-  country: ReturnType<typeof detectAdzunaCountry>,
   posthog: PostHog | null,
+  enrichJobId: string | null,
 ): Promise<ProcessResult> {
   try {
     const match = await scoreJob(profile, job);
     const insforge = await createInsforgeServer();
-    const { error } = await insforge.database.from("jobs").insert({
-      run_id: runId,
-      user_id: userId,
-      source: "search",
-      external_job_id: job.id,
-      source_url: job.redirect_url,
-      external_apply_url: job.redirect_url,
+    const updates = {
+      external_job_id: job.externalId,
+      source_url: job.sourceUrl,
+      external_apply_url: job.applyUrl,
       title: job.title,
-      company: job.company.display_name,
-      location: job.location.display_name || null,
-      salary: formatAdzunaSalary(job, country),
-      job_type: normalizeJobType(job),
+      company: job.company,
+      location: job.location,
+      salary: job.salary,
+      job_type: job.jobType,
       about_role: job.description || null,
-      responsibilities: [],
-      requirements: [],
-      nice_to_have: [],
-      benefits: [],
+      responsibilities: job.responsibilities,
+      requirements: job.requirements,
+      nice_to_have: job.niceToHave,
+      benefits: job.benefits,
       about_company: null,
       match_score: match.matchScore,
       match_reason: match.matchReason,
       matched_skills: match.matchedSkills,
       missing_skills: match.missingSkills,
+    };
+
+    if (enrichJobId) {
+      const { error } = await insforge.database
+        .from("jobs")
+        .update(updates)
+        .eq("id", enrichJobId)
+        .eq("user_id", userId);
+      if (error) throw new Error("Job enrichment failed.", { cause: error });
+      return { status: "enriched" };
+    }
+
+    const { error } = await insforge.database.from("jobs").insert({
+      ...updates,
+      run_id: runId,
+      user_id: userId,
+      source: "search",
       found_at: new Date().toISOString(),
     });
 
     if (error) {
-      if (await isExistingJob(userId, job.id)) {
+      if (await isExistingJob(userId, job.externalId)) {
         return { status: "duplicate" };
       }
       throw new Error("Job insert failed.", { cause: error });
@@ -166,11 +192,14 @@ async function processJob(
       strongMatch: match.matchScore >= MATCH_THRESHOLD,
     };
   } catch (error) {
-    console.error(`[agent/job-discovery] Job processing failed for ${job.id}`, error);
+    console.error(
+      `[agent/job-discovery] Job processing failed for ${job.externalId}`,
+      error,
+    );
     await logRunMessage(
       runId,
       userId,
-      `Skipped ${job.title} at ${job.company.display_name} because it could not be processed.`,
+      `Skipped ${job.title} at ${job.company} because it could not be processed.`,
       "error",
     );
     return { status: "failed" };
@@ -208,65 +237,134 @@ export async function discoverJobs(
     });
     await logRunMessage(runId, userId, `Searching for ${jobTitle}.`, "info");
 
-    const country = detectAdzunaCountry(location);
-    let adzunaJobs: AdzunaJob[];
+    let providerResult: Awaited<ReturnType<typeof searchJobsWithFallback>>;
     try {
-      adzunaJobs = await searchAdzunaJobs(jobTitle, location, country);
+      providerResult = await searchJobsWithFallback(jobTitle, location);
     } catch (error) {
-      console.error("[agent/job-discovery] Adzuna search failed", error);
+      console.error("[agent/job-discovery] Provider search failed", error);
       await logRunMessage(
         runId,
         userId,
-        "The job provider was unavailable for this search.",
+        error instanceof SearchApiConfigurationError
+          ? "SearchAPI is not configured with a valid API key."
+          : "The job provider was unavailable for this search.",
         "error",
       );
       await finishRun(runId, userId, "failed", 0);
       return {
         success: false,
-        error: "Job search is temporarily unavailable. Please try again.",
+        error:
+          error instanceof SearchApiConfigurationError
+            ? "Add a valid SearchAPI key before searching for jobs."
+            : "Job search is temporarily unavailable. Please try again.",
       };
     }
 
+    if (providerResult.fellBack) {
+      await logRunMessage(
+        runId,
+        userId,
+        "SearchAPI quota was exhausted, so this search used Adzuna previews.",
+        "warning",
+      );
+    }
+
     const uniqueJobs = Array.from(
-      new Map(adzunaJobs.map((job) => [job.id, job])).values(),
+      new Map(
+        providerResult.jobs.map((job) => [job.externalId, job]),
+      ).values(),
     );
-    const providerDuplicates = adzunaJobs.length - uniqueJobs.length;
+    const providerDuplicates = providerResult.jobs.length - uniqueJobs.length;
     const existingIds = new Set<string>();
-    if (uniqueJobs.length > 0) {
-      const { data, error } = await insforge.database
-        .from("jobs")
-        .select("external_job_id")
-        .eq("user_id", userId)
-        .eq("source", "search")
-        .in(
-          "external_job_id",
-          uniqueJobs.map((job) => job.id),
-        );
-      if (error) {
-        console.error("[agent/job-discovery] Duplicate lookup failed", error);
-        await finishRun(runId, userId, "failed", 0);
-        return { success: false, error: "We could not prepare the search results." };
-      }
-      for (const row of data ?? []) {
-        if (typeof row.external_job_id === "string") {
-          existingIds.add(row.external_job_id);
-        }
+    const existingJobs: ExistingJob[] = [];
+    const { data: existingData, error: existingError } = await insforge.database
+      .from("jobs")
+      .select("id, title, company, external_job_id")
+      .eq("user_id", userId)
+      .eq("source", "search")
+      .order("found_at", { ascending: false })
+      .limit(500);
+    if (existingError) {
+      console.error("[agent/job-discovery] Duplicate lookup failed", existingError);
+      await finishRun(runId, userId, "failed", 0);
+      return { success: false, error: "We could not prepare the search results." };
+    }
+    for (const row of existingData ?? []) {
+      if (
+        typeof row.id === "string" &&
+        typeof row.title === "string" &&
+        typeof row.company === "string"
+      ) {
+        const externalJobId =
+          typeof row.external_job_id === "string"
+            ? row.external_job_id
+            : null;
+        if (externalJobId) existingIds.add(externalJobId);
+        existingJobs.push({
+          id: row.id,
+          title: row.title,
+          company: row.company,
+          externalJobId,
+        });
       }
     }
 
-    const newJobs = uniqueJobs.filter((job) => !existingIds.has(job.id));
-    const results = await mapWithConcurrency(newJobs, 3, (job) =>
-      processJob(job, profile, userId, runId, country, posthog),
-    );
-    const summary = summarizeProcessingStatuses(
-      results.map((result) =>
-        result.status === "saved"
-          ? result.strongMatch
-            ? "savedStrong"
-            : "saved"
-          : result.status,
+    const existingByIdentity = new Map<string, ExistingJob>();
+    for (const existingJob of existingJobs) {
+      const key = createNormalizedJobIdentity(
+        existingJob.title,
+        existingJob.company,
+      );
+      if (!existingByIdentity.has(key)) existingByIdentity.set(key, existingJob);
+    }
+
+    let exactDuplicates = 0;
+    let externalDuplicates = 0;
+    const workItems: JobWorkItem[] = [];
+    for (const job of uniqueJobs) {
+      if (existingIds.has(job.externalId)) {
+        externalDuplicates += 1;
+        continue;
+      }
+      const identity = createNormalizedJobIdentity(job.title, job.company);
+      const exactMatch = existingByIdentity.get(identity);
+      if (exactMatch) {
+        existingByIdentity.delete(identity);
+        if (
+          job.provider === "searchapi" &&
+          !exactMatch.externalJobId?.startsWith("searchapi:")
+        ) {
+          workItems.push({ job, enrichJobId: exactMatch.id });
+        } else {
+          exactDuplicates += 1;
+        }
+        continue;
+      }
+      workItems.push({ job, enrichJobId: null });
+    }
+
+    const results = await mapWithConcurrency(workItems, 3, (item) =>
+      processJob(
+        item.job,
+        profile,
+        userId,
+        runId,
+        posthog,
+        item.enrichJobId,
       ),
-      existingIds.size + providerDuplicates,
+    );
+    const enrichedJobs = results.filter(
+      (result) => result.status === "enriched",
+    ).length;
+    const summary = summarizeProcessingStatuses(
+      results.flatMap((result) =>
+        result.status === "saved"
+          ? [result.strongMatch ? "savedStrong" : "saved"]
+          : result.status === "enriched"
+            ? []
+            : [result.status],
+      ),
+      externalDuplicates + providerDuplicates + exactDuplicates,
     );
     const {
       jobsFound,
@@ -276,7 +374,7 @@ export async function discoverJobs(
       partial,
     } = summary;
 
-    if (newJobs.length > 0 && jobsFound === 0 && failedJobs > 0) {
+    if (workItems.length > 0 && jobsFound === 0 && enrichedJobs === 0 && failedJobs > 0) {
       await finishRun(runId, userId, "failed", 0);
       return {
         success: false,
@@ -305,9 +403,9 @@ export async function discoverJobs(
     const message =
       uniqueJobs.length === 0
         ? "No jobs matched this search. Try a broader job title or another location."
-        : jobsFound === 0 && existingIds.size > 0 && failedJobs === 0
+        : jobsFound === 0 && enrichedJobs === 0 && skippedJobs > 0 && failedJobs === 0
           ? "No new jobs were added because the matching listings are already saved."
-          : `Found ${jobsFound} new ${jobsFound === 1 ? "job" : "jobs"} and saved ${strongMatches} strong ${strongMatches === 1 ? "match" : "matches"}.${partial ? " Some results were skipped." : ""}`;
+          : `Found ${jobsFound} new ${jobsFound === 1 ? "job" : "jobs"} and saved ${strongMatches} strong ${strongMatches === 1 ? "match" : "matches"}.${enrichedJobs > 0 ? ` Added full descriptions to ${enrichedJobs} saved ${enrichedJobs === 1 ? "job" : "jobs"}.` : ""}${providerResult.fellBack ? " SearchAPI quota was reached, so Adzuna previews were used." : ""}${partial ? " Some results were skipped." : ""}`;
 
     return {
       success: true,

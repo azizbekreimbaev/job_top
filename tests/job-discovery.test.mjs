@@ -26,6 +26,14 @@ import {
   parseJobsQuery,
 } from "../lib/job-filters.ts";
 import { createProfileFormValues } from "../lib/profile.ts";
+import { formatJobType, isJobId, normalizeJobDetails } from "../lib/job-details.ts";
+import {
+  createNormalizedJobIdentity,
+  createSearchApiExternalId,
+  isSearchApiCredentialStatus,
+  isSearchApiQuotaStatus,
+  normalizeSearchApiJobs,
+} from "../lib/searchapi-normalization.ts";
 
 const adzunaJob = {
   id: "job-1",
@@ -263,4 +271,121 @@ test("pagination items remain compact around the active page", () => {
   assert.equal(JOBS_PAGE_SIZE, 10);
   assert.deepEqual(getPaginationItems(1, 3), [1, 2, 3]);
   assert.deepEqual(getPaginationItems(5, 10), [1, "ellipsis", 4, 5, 6, "ellipsis", 10]);
+});
+
+test("job details normalize persisted data for display", () => {
+  const job = normalizeJobDetails({
+    id: "job-1",
+    title: " Backend Developer ",
+    company: "Insight Global",
+    location: "Newark, Essex",
+    salary: "$101k - $101k",
+    job_type: "fulltime",
+    about_role: "Build reliable services.",
+    responsibilities: ["Build APIs"],
+    requirements: ["Node.js"],
+    nice_to_have: [],
+    benefits: [],
+    match_score: 85,
+    match_reason: "Strong backend alignment.",
+    matched_skills: ["Node.js", "AWS"],
+    missing_skills: ["Java"],
+    source_url: "https://example.com/job",
+    external_apply_url: "https://example.com/apply",
+    found_at: "2026-09-19T11:00:00Z",
+    source: "search",
+    external_job_id: "searchapi:abc",
+  }, new Date("2026-09-19T12:00:00Z"));
+
+  assert.equal(job.title, "Backend Developer");
+  assert.equal(job.dateFound, "1 hour ago");
+  assert.deepEqual(job.matchedSkills, ["Node.js", "AWS"]);
+  assert.equal(formatJobType(job.jobType), "Full-time");
+  assert.equal(job.descriptionIsComplete, true);
+});
+
+test("SearchAPI jobs preserve full descriptions and structured highlights", () => {
+  const jobs = normalizeSearchApiJobs({
+    jobs: [{
+      title: "Platform Engineer",
+      company_name: "Example, Inc.",
+      location: "Seoul, South Korea",
+      description: "A complete multi-paragraph job description.",
+      sharing_link: "https://www.google.com/search?job=one",
+      apply_link: "https://example.com/jobs/one",
+      detected_extensions: {
+        salary: "$120K–$150K a year",
+        schedule: "Full-time",
+      },
+      job_highlights: [
+        { title: "Qualifications", items: ["TypeScript", "PostgreSQL"] },
+        { title: "Responsibilities", items: ["Build reliable services"] },
+        { title: "Benefits", items: ["Paid time off"] },
+      ],
+    }],
+  });
+
+  assert.equal(jobs.length, 1);
+  assert.equal(jobs[0].provider, "searchapi");
+  assert.equal(jobs[0].description, "A complete multi-paragraph job description.");
+  assert.equal(jobs[0].jobType, "fulltime");
+  assert.deepEqual(jobs[0].requirements, ["TypeScript", "PostgreSQL"]);
+  assert.deepEqual(jobs[0].responsibilities, ["Build reliable services"]);
+  assert.deepEqual(jobs[0].benefits, ["Paid time off"]);
+});
+
+test("SearchAPI identifiers and exact-match keys are stable", () => {
+  const first = createSearchApiExternalId(
+    "https://google.example/job/1",
+    "https://company.example/apply/1",
+  );
+  const second = createSearchApiExternalId(
+    "https://google.example/job/1",
+    "https://company.example/apply/1",
+  );
+  assert.equal(first, second);
+  assert.match(first, /^searchapi:[a-f0-9]{32}$/);
+  assert.equal(
+    createNormalizedJobIdentity(" Senior Engineer ", "Example, Inc."),
+    createNormalizedJobIdentity("senior-engineer", "example inc"),
+  );
+});
+
+test("only SearchAPI quota exhaustion activates the provider fallback", () => {
+  assert.equal(isSearchApiQuotaStatus(429), true);
+  assert.equal(isSearchApiQuotaStatus(401), false);
+  assert.equal(isSearchApiQuotaStatus(500), false);
+  assert.equal(isSearchApiCredentialStatus(401), true);
+  assert.equal(isSearchApiCredentialStatus(429), false);
+});
+
+test("legacy Adzuna descriptions are identified as previews", () => {
+  const job = normalizeJobDetails({
+    id: "job-2",
+    title: "Backend Developer",
+    company: "Example",
+    match_score: 80,
+    match_reason: "Good match.",
+    source_url: "https://example.com/job",
+    external_apply_url: "https://example.com/apply",
+    source: "search",
+    external_job_id: "adzuna-123",
+  });
+
+  assert.equal(job.descriptionIsComplete, false);
+});
+
+test("job details reject malformed or unsafe records", () => {
+  assert.equal(normalizeJobDetails(null), null);
+  assert.equal(normalizeJobDetails({
+    id: "job-1",
+    title: "Engineer",
+    company: "Example",
+    match_score: 80,
+    match_reason: "Good match.",
+    source_url: "javascript:alert(1)",
+    external_apply_url: "https://example.com/apply",
+  }), null);
+  assert.equal(isJobId("not-a-job-id"), false);
+  assert.equal(isJobId("123e4567-e89b-42d3-a456-426614174000"), true);
 });

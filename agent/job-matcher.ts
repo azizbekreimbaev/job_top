@@ -4,12 +4,12 @@ import OpenAI from "openai";
 
 import { scoreJobWithClient } from "@/lib/job-matching";
 export { JobMatchingOutputError } from "@/lib/job-matching";
-import type { AdzunaJob, JobMatch } from "@/types/jobs";
+import type { DiscoveredJob, JobMatch } from "@/types/jobs";
 import type { ProfileFormValues } from "@/types/profile";
 
 export async function scoreJob(
   profile: ProfileFormValues,
-  job: AdzunaJob,
+  job: DiscoveredJob,
 ): Promise<JobMatch> {
   const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,

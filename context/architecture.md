@@ -8,7 +8,7 @@
 | Auth + DB + Storage + Realtime | InsForge                 | Entire backend                                   |
 | Cloud browser                  | Browserbase              | Company research — browsing company public pages |
 | AI browser control             | Stagehand                | Company page interaction and content extraction  |
-| Job Discovery                  | Adzuna API               | Job search and discovery                         |
+| Job Discovery                  | SearchAPI + Adzuna       | Full Google Jobs data with quota fallback        |
 | AI model                       | OpenAI GPT-5.6-luna            | Matching, research synthesis, extraction         |
 | Analytics                      | PostHog                  | Event tracking and dashboard charts              |
 | PDF generation                 | @react-pdf/renderer      | Resume PDF rendering                             |
@@ -113,7 +113,7 @@
 | Folder        | Owns                                                                                                   |
 | ------------- | ------------------------------------------------------------------------------------------------------ |
 | `app/`        | Pages and API routes only. No business logic.                                                          |
-| `agent/`      | All agent logic. Adzuna discovery, company research, matching, extraction. Nothing here touches React. |
+| `agent/`      | All agent logic. Provider-backed discovery, company research, matching, extraction. Nothing here touches React. |
 | `actions/`    | Server Actions for UI-triggered mutations only. Profile save, profile update.                          |
 | `components/` | UI only. No data fetching logic. No direct DB calls.                                                   |
 | `lib/`        | Third party client initialisation and shared utilities only.                                           |
@@ -142,9 +142,11 @@ User clicks Find Jobs
         ↓
 API route in app/api/agent/find
         ↓
-Calls agent/adzuna.ts
+Calls the provider-backed discovery agent
         ↓
-Adzuna API returns job listings
+SearchAPI returns full Google Jobs listings
+        ↓ quota exhausted (HTTP 429 only)
+Adzuna returns preview listings as fallback
         ↓
 GPT-5.6-luna scores each job against user profile
         ↓
