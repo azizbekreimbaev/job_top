@@ -7,9 +7,9 @@
 | Framework                      | Next.js 16 (App Router)  | Full stack framework                             |
 | Auth + DB + Storage + Realtime | InsForge                 | Entire backend                                   |
 | Cloud browser                  | Browserbase              | Company research — browsing company public pages |
-| AI browser control             | Stagehand                | Company page interaction and content extraction  |
+| Browser automation             | Stagehand Browserbase API | Rendered company-page navigation and DOM access   |
 | Job Discovery                  | SearchAPI + Adzuna       | Full Google Jobs data with quota fallback        |
-| AI model                       | OpenAI GPT-5.6-luna            | Matching, research synthesis, extraction         |
+| AI model                       | OpenAI GPT-5.6-luna      | Job matching and resume extraction/generation     |
 | Analytics                      | PostHog                  | Event tracking and dashboard charts              |
 | PDF generation                 | @react-pdf/renderer      | Resume PDF rendering                             |
 | Styling                        | Tailwind CSS + shadcn/ui | UI components and styling                        |
@@ -57,7 +57,7 @@
 │       │   └── extract/route.ts           → Extract profile data from uploaded resume PDF
 ├── agent/
 │   ├── adzuna.ts                          → Adzuna API job discovery + GPT-5.6-luna scoring
-│   ├── research.ts                        → Company research — Browserbase + Stagehand + GPT-5.6-luna
+│   ├── company-research.ts                → Company research — Browserbase + deterministic synthesis
 │   ├── matcher.ts                         → GPT-5.6-luna job matching logic
 │   ├── extractor.ts                       → GPT-5.6-luna job description extraction + structuring
 │   └── types.ts                           → Agent-specific TypeScript types
@@ -97,7 +97,7 @@
 │   ├── insforge-client.ts                 → InsForge browser client instance
 │   ├── insforge-server.ts                 → InsForge server client
 │   ├── browserbase.ts                     → Browserbase session creation + management
-│   ├── stagehand.ts                       → Stagehand initialisation with Browserbase session
+│   ├── company-research.ts                → Browserbase lifecycle and rendered-page extraction
 │   ├── adzuna.ts                          → Adzuna API client
 │   ├── posthog-client.ts                  → PostHog browser client
 │   ├── posthog-server.ts                  → PostHog server client
@@ -162,13 +162,13 @@ User clicks Research Company on job details page
         ↓
 API route in app/api/agent/research
         ↓
-Calls agent/research.ts
+Calls agent/company-research.ts
         ↓
-Single Browserbase session opens with Stagehand
+Single Browserbase session opens through Stagehand's Browserbase API
         ↓
-Navigates to company homepage + sub pages
+Navigates to company homepage + up to three validated subpages
         ↓
-GPT-5.6-luna synthesizes dossier from extracted content
+Rendered DOM text is extracted and a deterministic dossier is built locally
         ↓
 Dossier saved to jobs.company_research
         ↓
@@ -346,9 +346,9 @@ export const createInsforgeServer = async () => {
 
 ```typescript
 // Company research session — single session, sequential page visits
-const session = await bb.sessions.create({
-  projectId: process.env.BROWSERBASE_PROJECT_ID!,
-  timeout: 120, // 2 minute session — visits 3-4 pages max
+const browser = await browserbase.launch({
+  apiKey: process.env.BROWSERBASE_API_KEY!,
+  api_timeout: 120, // 2 minute session — visits 3-4 pages max
 });
 ```
 
@@ -381,17 +381,7 @@ const data = await response.json();
 
 ```typescript
 // Single session — visits company homepage and sub pages sequentially
-const stagehand = new Stagehand({
-  env: "BROWSERBASE",
-  apiKey: process.env.BROWSERBASE_API_KEY!,
-  projectId: process.env.BROWSERBASE_PROJECT_ID!,
-  browserbaseSessionID: session.id,
-  modelName: "GPT-5.6-luna",
-  modelClientOptions: { apiKey: process.env.OPENAI_API_KEY! },
-});
-
-await stagehand.init();
-const page = stagehand.page;
+const page = await browser.context.activePage();
 
 // Clean company name and construct homepage URL
 const cleanName = companyName
@@ -405,15 +395,17 @@ const homepageUrl = `https://www.${cleanName}.com`;
 // Navigate and extract — graceful fallback if page not found
 try {
   await page.goto(homepageUrl);
-  await page.waitForLoadState("networkidle");
-  const content = await stagehand.extract({ instruction: "..." });
+  const text = await page.locator("body").innerText();
+  const html = await page.locator("body").innerHtml();
+  const evidence = extractRenderedResearchPage(text, html, await page.url(), true);
+  const dossier = createDeterministicCompanyResearch(job, profile, [evidence], visitedUrls);
 } catch (error) {
-  // Log and continue — GPT-5.6-luna will synthesize from what was found
+  // Log and continue with the deterministic job/profile fallback.
   await logAgentError(jobId, error);
 }
 
-// Always close session when done
-await stagehand.close();
+// Always close both resources when done
+await browser.close();
 ```
 
 ---
@@ -427,9 +419,9 @@ Rules the AI agent must never violate:
 - Server Actions never call agent functions. Agent functions are only called from API routes.
 - All InsForge server-side writes use `createInsforgeServer()` — never the browser client.
 - No hardcoded hex values or raw Tailwind color classes in components — use CSS variables from ui-tokens.md.
-- Every Stagehand action is wrapped in try/catch. Failures are logged to agent_logs, never thrown to crash the run.
-- Company research always returns a dossier — even if browser research fails, GPT-5.6-luna synthesizes from company name and job description alone. Never return empty.
-- Browserbase sessions are always closed with stagehand.close() when done — never leave sessions open.
+- Every Browserbase navigation and extraction is wrapped independently. Failures are logged to agent_logs without discarding successful evidence.
+- Company research falls back to a clearly labelled job/profile dossier when browser research fails. Generation or persistence failures preserve the previous dossier.
+- The Browserbase resource is always closed in a finally block.
 - Always scope InsForge queries to the current user_id — never query without a user filter.
 - Adzuna API always includes category=it-jobs — never search without this filter.
 - jobs.source is always 'search' or 'url' — never any other value.

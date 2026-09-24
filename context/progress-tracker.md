@@ -6,9 +6,9 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ## Current Status
 
-**Phase:** Phase 4 — Job Details Page
-**Last completed:** 12 Job Details Page — Full UI
-**Next:** 13 Company Research Agent
+**Phase:** Phase 5 — Dashboard
+**Last completed:** 14 Dashboard Page — Full UI
+**Next:** 15 Stats Bar — Real Data
 
 ---
 
@@ -37,11 +37,11 @@ Update this file after every completed feature. Any AI agent reading this should
 ### Phase 4 — Job Details Page
 
 - [x] 12 Job Details Page — Full UI
-- [ ] 13 Company Research Agent
+- [x] 13 Company Research Agent
 
 ### Phase 5 — Dashboard
 
-- [ ] 14 Dashboard Page — Full UI
+- [x] 14 Dashboard Page — Full UI
 - [ ] 15 Stats Bar — Real Data
 - [ ] 16 Recent Activity — Real Data
 - [ ] 17 Analytics Charts — PostHog Data
@@ -90,10 +90,13 @@ Update this file after every completed feature. Any AI agent reading this should
 - Find Jobs filtering is URL-backed and server-rendered against InsForge: company/role text search is case-insensitive, match ranges share the 70 threshold, ordering is deterministic, and exact-count pagination returns 10 jobs per page.
 - Adzuna search remains country-endpoint scoped. The current product supports US, UK, Canada, and Australia; other locations, including Korea, fall back to the US endpoint and may return no results until another provider or market integration is added.
 - Job details are server-rendered from a column-specific, current-user-scoped InsForge lookup at `/find-jobs/[id]`; malformed, missing, and unowned IDs use the route not-found state, while database failures use a retryable error boundary.
-- Job-detail cards follow the supplied 1024px reference canvas with responsive metadata, semantic match and skill treatments, safe external job links, and the company-research empty state. Research remains intentionally unwired until Feature 13.
+- Job-detail cards follow the supplied 1024px reference canvas with responsive metadata, semantic match and skill treatments, and safe external job links.
+- Company research runs synchronously from an owned job detail page, uses one Browserbase session for a validated homepage and up to three same-company pages, extracts rendered DOM text, and builds the complete nine-field dossier deterministically from website, job, and complete-profile evidence without an AI-model API call.
+- Missing Browserbase configuration, browser failures, or empty site evidence produce a disclosed job/profile fallback with no sources. Generation or persistence failures keep the previous dossier; successful reruns atomically replace it and emit `company_researched` only after persistence.
 - Saved-job table rows now expose one stretched, keyboard-focusable link to their owned detail route without introducing a client component.
 - Discovery now uses one SearchAPI Google Jobs request as the primary source and stores complete descriptions plus structured sections. Only SearchAPI HTTP 429 falls back to Adzuna; rejected credentials are reported as configuration errors.
 - Exact normalized title-and-company matches can upgrade saved Adzuna previews with SearchAPI data. Remaining Adzuna rows are labeled “Job Description Preview” and link safely to the original full listing.
+- The dashboard now matches the supplied reference with four mock stat cards, a five-entry activity timeline, responsive company-research and match-distribution bar charts, and a filled jobs-over-time area chart. Charts are dependency-free SVGs with accessible text summaries, and incomplete profiles receive a compact CTA banner above the dashboard grid.
 
 ---
 

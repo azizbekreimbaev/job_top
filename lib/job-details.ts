@@ -1,5 +1,5 @@
 import { formatRelativeDate } from "./job-discovery.ts";
-import type { JobDetails } from "../types/jobs.ts";
+import type { CompanyResearch, JobDetails } from "../types/jobs.ts";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -9,7 +9,7 @@ function isHttpUrl(value: unknown): value is string {
   if (typeof value !== "string") return false;
   try {
     const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
+    return (url.protocol === "http:" || url.protocol === "https:") && !url.username && !url.password;
   } catch {
     return false;
   }
@@ -17,9 +17,51 @@ function isHttpUrl(value: unknown): value is string {
 
 function normalizeStringList(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value.flatMap((item) =>
+  const items = value.flatMap((item) =>
     typeof item === "string" && item.trim() ? [item.trim()] : [],
   );
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = item.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+export function normalizeCompanyResearch(
+  value: unknown,
+  trustedSources?: readonly string[],
+): CompanyResearch | null {
+  if (!isRecord(value)) return null;
+
+  const stringFields = ["companyOverview", "whyThisRole"] as const;
+  const listFields = [
+    "techStack",
+    "culture",
+    "yourEdge",
+    "gapsToAddress",
+    "smartQuestions",
+    "interviewPrep",
+  ] as const;
+
+  const strings = Object.fromEntries(
+    stringFields.map((field) => [
+      field,
+      typeof value[field] === "string" ? value[field].trim() : "",
+    ]),
+  ) as Record<(typeof stringFields)[number], string>;
+  if (stringFields.some((field) => !strings[field])) return null;
+  if (listFields.some((field) => !Array.isArray(value[field]))) return null;
+
+  const lists = Object.fromEntries(
+    listFields.map((field) => [field, normalizeStringList(value[field])]),
+  ) as Record<(typeof listFields)[number], string[]>;
+  const rawSources = trustedSources ?? value.sources;
+  if (!Array.isArray(rawSources)) return null;
+  const sources = normalizeStringList(rawSources).filter(isHttpUrl);
+
+  return { ...strings, ...lists, sources };
 }
 
 function normalizeJobType(
@@ -98,5 +140,6 @@ export function normalizeJobDetails(
       value.source === "url" ||
       (typeof value.external_job_id === "string" &&
         value.external_job_id.startsWith("searchapi:")),
+    companyResearch: normalizeCompanyResearch(value.company_research),
   };
 }

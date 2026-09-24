@@ -287,7 +287,7 @@ Last updated: 2026-09-19
 ### Job Details Cards
 
 Files: components/job-details/*.tsx, app/(protected)/find-jobs/[id]/page.tsx
-Last updated: 2026-09-19
+Last updated: 2026-09-20 (Feature 13)
 
 | Property         | Class                                                                                         |
 | ---------------- | --------------------------------------------------------------------------------------------- |
@@ -301,4 +301,23 @@ Last updated: 2026-09-19
 | Shadow           | Cards `shadow-sm`                                                                             |
 | Accent usage     | Primary CTA `bg-accent`; matched skills use success tokens; gaps and research use accent tokens |
 
-**Pattern notes:** Job-detail content uses a centered 1024px product canvas and a consistent stack of bordered, softly shadowed cards. Metadata collapses from four columns to two and then one. External actions always include visible keyboard focus, safe new-tab attributes, and screen-reader new-tab text. Skill badges use compact semantic pills; card headings pair a small tinted icon well with either an uppercase label or sentence-case title. Complete provider content keeps the standard heading; truncated provider content is explicitly labeled as a preview and ends with a nested `bg-surface-secondary` notice plus the standard accent CTA to the original listing.
+**Pattern notes:** Job-detail content uses a centered 1024px product canvas and a consistent stack of bordered, softly shadowed cards. Metadata collapses from four columns to two and then one. External actions always include visible keyboard focus, safe new-tab attributes, and screen-reader new-tab text. Skill badges use compact semantic pills; card headings pair a small tinted icon well with either an uppercase label or sentence-case title. Complete provider content keeps the standard heading; truncated provider content is explicitly labeled as a preview and ends with a nested `bg-surface-secondary` notice plus the standard accent CTA to the original listing. Company research retains existing dossier content during reruns, uses the standard disabled pending action and semantic live feedback, lays dossier sections into a responsive two-column grid, renders validated sources as safe new-tab links, and marks job/profile-only fallback with `border-warning/30 bg-warning/10` while omitting sources.
+
+### Dashboard Cards and Charts
+
+Files: app/(protected)/dashboard/page.tsx, components/dashboard/*.tsx
+Last updated: 2026-09-24 (Feature 14)
+
+| Property         | Class                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| Background       | Page `bg-background`; cards and banner `bg-surface`                                    |
+| Border           | Cards `border border-border`; incomplete banner `border-warning/30`                    |
+| Border radius    | Cards `rounded-xl`; trend labels `rounded-sm`; activity markers `rounded-full`         |
+| Text — primary   | Titles `text-text-primary text-base font-semibold`; stats `text-3xl font-semibold`     |
+| Text — secondary | Labels `text-text-secondary text-sm font-medium`; axes and timestamps `text-text-muted` |
+| Spacing          | Page `space-y-6 px-5 py-8 sm:px-8 sm:py-10`; cards `p-6`; grid `gap-6`                |
+| Hover state      | Banner CTA `hover:bg-accent-dark`                                                      |
+| Shadow           | `shadow-sm`                                                                            |
+| Accent usage     | Purple jobs trend; blue research bars; green match bars; semantic activity markers     |
+
+**Pattern notes:** Dashboard sections use the 1440px authenticated canvas and white tokenized cards. Stats collapse from four columns to two and then one; chart pairs stack until desktop. Charts use responsive inline SVG with CSS-variable color tokens, dashed border-token grids, muted axes, rounded bars, and screen-reader summaries. Recent activity uses the established purple, blue, and green semantic dot treatments on a subtle vertical timeline. The incomplete-profile banner stays compact and uses the standard accent CTA without changing the white card surface.

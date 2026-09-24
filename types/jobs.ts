@@ -71,7 +71,37 @@ export type JobDetails = {
   applyUrl: string;
   dateFound: string;
   descriptionIsComplete: boolean;
+  companyResearch: CompanyResearch | null;
 };
+
+export type CompanyResearch = {
+  companyOverview: string;
+  techStack: string[];
+  culture: string[];
+  whyThisRole: string;
+  yourEdge: string[];
+  gapsToAddress: string[];
+  smartQuestions: string[];
+  interviewPrep: string[];
+  sources: string[];
+};
+
+export type CompanyResearchProvenance = "website" | "fallback";
+
+export type CompanyResearchResponse =
+  | {
+      success: true;
+      data: {
+        dossier: CompanyResearch;
+        provenance: CompanyResearchProvenance;
+        message: string;
+      };
+    }
+  | {
+      success: false;
+      error: string;
+      profileRequired?: boolean;
+    };
 
 export type JobMatchFilter = "all" | "high" | "low";
 

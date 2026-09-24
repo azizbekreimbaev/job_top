@@ -245,8 +245,7 @@ All environment variables defined in `.env.local` for development. Never hardcod
 | ------------------------------- | ---------------------- |
 | `NEXT_PUBLIC_INSFORGE_URL`      | lib/insforge-client.ts |
 | `NEXT_PUBLIC_INSFORGE_ANON_KEY` | lib/insforge-client.ts |
-| `BROWSERBASE_API_KEY`           | lib/browserbase.ts     |
-| `BROWSERBASE_PROJECT_ID`        | lib/browserbase.ts     |
+| `BROWSERBASE_API_KEY`           | agent/company-research.ts |
 | `OPENAI_API_KEY`                | agent/ functions       |
 | `ADZUNA_APP_ID`                 | lib/adzuna.ts          |
 | `ADZUNA_APP_KEY`                | lib/adzuna.ts          |
@@ -291,7 +290,7 @@ import { Button } from "../../../components/ui/button";
 
 - No comments explaining what the code does — code must be self-explanatory
 - Comments only for why — explaining a non-obvious decision
-- Agent functions may have a brief comment explaining the Browserbase or Stagehand strategy
+- Agent functions may have a brief comment explaining the Browserbase strategy
 - Never leave TODO comments in committed code
 
 ---
@@ -307,8 +306,7 @@ Never install a new package without a clear reason. Before installing anything c
 Approved dependencies for this project:
 
 - `@insforge/sdk` — InsForge client, SSR auth helpers, and middleware session refresh
-- `@browserbasehq/sdk` — Browserbase sessions
-- `@browserbasehq/stagehand` — AI browser control
+- `@browserbasehq/stagehand` — Stagehand v4 package used for direct Browserbase session launch and rendered-page access; Feature 13 does not create a Stagehand AI agent
 - `openai` — GPT-5.6-luna API
 - `posthog-js` — PostHog browser client
 - `posthog-node` — PostHog server client

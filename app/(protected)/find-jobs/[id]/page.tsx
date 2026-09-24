@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { CompanyResearchEmpty } from "@/components/job-details/CompanyResearchEmpty";
+import { CompanyResearchCard } from "@/components/job-details/CompanyResearchCard";
 import { JobDescription } from "@/components/job-details/JobDescription";
 import { JobDetailsHeader } from "@/components/job-details/JobDetailsHeader";
 import { JobInfoCards } from "@/components/job-details/JobInfoCards";
@@ -10,7 +10,7 @@ import { SkillsComparison } from "@/components/job-details/SkillsComparison";
 import { isJobId, normalizeJobDetails } from "@/lib/job-details";
 import { createInsforgeServer } from "@/lib/insforge-server";
 
-const JOB_DETAILS_COLUMNS = "id, source, external_job_id, title, company, location, salary, job_type, about_role, responsibilities, requirements, nice_to_have, benefits, match_score, match_reason, matched_skills, missing_skills, source_url, external_apply_url, found_at";
+const JOB_DETAILS_COLUMNS = "id, source, external_job_id, title, company, location, salary, job_type, about_role, responsibilities, requirements, nice_to_have, benefits, match_score, match_reason, matched_skills, missing_skills, source_url, external_apply_url, found_at, company_research";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -53,7 +53,7 @@ export default async function JobDetailsPage(props: Props) {
         <MatchReasoning reason={job.matchReason} />
         <SkillsComparison matchedSkills={job.matchedSkills} missingSkills={job.missingSkills} />
         <JobDescription aboutRole={job.aboutRole} responsibilities={job.responsibilities} requirements={job.requirements} niceToHave={job.niceToHave} benefits={job.benefits} isComplete={job.descriptionIsComplete} sourceUrl={job.sourceUrl} />
-        <CompanyResearchEmpty company={job.company} />
+        <CompanyResearchCard jobId={job.id} company={job.company} research={job.companyResearch} />
         <Link href={job.applyUrl} target="_blank" rel="noopener noreferrer" className="flex min-h-12 w-full items-center justify-center rounded-md bg-accent px-5 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
           Apply Now at {job.company}
           <span className="sr-only"> (opens in a new tab)</span>

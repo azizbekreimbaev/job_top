@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     "pdf-parse",
     "@napi-rs/canvas",
     "@react-pdf/renderer",
+    "@browserbasehq/stagehand",
   ],
   experimental: {
     serverActions: {
