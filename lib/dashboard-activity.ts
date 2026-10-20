@@ -1,4 +1,4 @@
-export type DashboardActivityType = "agent_run" | "company_research";
+export type DashboardActivityType = "agent_run" | "agent_run_failed" | "company_research";
 
 export type DashboardActivityEntry = {
     type: DashboardActivityType;
@@ -13,6 +13,35 @@ export type DashboardActivityViewModel = {
     color: string;
     ring: string;
 };
+
+export type AgentRunActivityInput = {
+    status: string | null;
+    job_title_searched: string | null;
+    jobs_found: number | null;
+    started_at: string;
+    completed_at: string | null;
+};
+
+const ACTIVITY_COLORS: Record<DashboardActivityType, { color: string; ring: string }> = {
+    agent_run: { color: "bg-success-alt", ring: "bg-success-light" },
+    agent_run_failed: { color: "bg-error", ring: "bg-error/20" },
+    company_research: { color: "bg-info", ring: "bg-info-light" },
+};
+
+export function toAgentRunActivity(run: AgentRunActivityInput): DashboardActivityEntry {
+    const title = run.job_title_searched || "your search";
+    const timestamp = run.completed_at ?? run.started_at;
+
+    if (run.status === "failed") {
+        return { type: "agent_run_failed", text: `Search for ${title} failed`, timestamp };
+    }
+
+    if (run.status === "running") {
+        return { type: "agent_run", text: `Searching for ${title}…`, timestamp };
+    }
+
+    return { type: "agent_run", text: `Found ${run.jobs_found ?? 0} jobs for ${title}`, timestamp };
+}
 
 function formatRelativeTime(date: Date, now: Date) {
     const diffMinutes = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 60000));
@@ -45,8 +74,7 @@ export function summarizeRecentActivities(
                 type: entry.type,
                 text: entry.text,
                 time: isValidDate ? formatRelativeTime(date, now) : "Unknown time",
-                color: entry.type === "company_research" ? "bg-info" : "bg-success-alt",
-                ring: entry.type === "company_research" ? "bg-info-light" : "bg-success-light",
+                ...ACTIVITY_COLORS[entry.type],
             };
         })
         .slice(0, 5);

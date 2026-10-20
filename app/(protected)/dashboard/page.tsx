@@ -5,7 +5,7 @@ import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { ProfileIncompleteBanner } from "@/components/dashboard/ProfileIncompleteBanner";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { buildMatchScoreDistribution, buildRollingDaySeries } from "@/lib/dashboard-analytics";
-import { summarizeRecentActivities } from "@/lib/dashboard-activity";
+import { summarizeRecentActivities, toAgentRunActivity } from "@/lib/dashboard-activity";
 import {
   getDashboardTrendText,
   summarizeDashboardStats,
@@ -63,11 +63,7 @@ export default async function DashboardPage({
   ).map((point) => point.value);
 
   const recentActivity = summarizeRecentActivities([
-    ...((agentRunsData ?? []).map((run) => ({
-      type: "agent_run" as const,
-      text: `Found ${run.jobs_found ?? 0} jobs for ${run.job_title_searched || "your search"}`,
-      timestamp: run.completed_at ?? run.started_at,
-    }))),
+    ...(agentRunsData ?? []).map(toAgentRunActivity),
     ...((jobs ?? []).filter((job) => job.company_research).map((job) => ({
       type: "company_research" as const,
       text: `Researched ${job.company_research?.company ?? "company"}`,

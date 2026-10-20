@@ -1,11 +1,7 @@
+import type { DashboardActivityViewModel } from "@/lib/dashboard-activity";
+
 type RecentActivityProps = {
-  activities: Array<{
-    type: "agent_run" | "company_research";
-    text: string;
-    time: string;
-    color: string;
-    ring: string;
-  }>;
+  activities: DashboardActivityViewModel[];
 };
 
 export function RecentActivity({ activities }: RecentActivityProps) {
